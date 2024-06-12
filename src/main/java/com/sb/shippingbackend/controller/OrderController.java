@@ -1,6 +1,8 @@
 package com.sb.shippingbackend.controller;
 
+import com.sb.shippingbackend.dto.CreateOrderReq;
 import com.sb.shippingbackend.dto.ReqRes;
+import com.sb.shippingbackend.dto.UpdateOrderReq;
 import com.sb.shippingbackend.repository.OrderRepository;
 import com.sb.shippingbackend.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,12 +17,12 @@ public class OrderController {
     private OrderService orderService;
 
     @PostMapping("/create")
-    public ResponseEntity<ReqRes> create(@RequestBody ReqRes createRequest) {
+    public ResponseEntity<ReqRes> create(@RequestBody CreateOrderReq createRequest) {
         return ResponseEntity.ok(orderService.createOrder(createRequest));
     }
 
     @PutMapping("/update")
-    public ResponseEntity<ReqRes> update(@RequestBody ReqRes updateRequest) {
+    public ResponseEntity<ReqRes> update(@RequestBody UpdateOrderReq updateRequest) {
         return ResponseEntity.ok(orderService.updateOrder(updateRequest));
     }
 }

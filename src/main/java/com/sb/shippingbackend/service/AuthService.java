@@ -1,15 +1,20 @@
 package com.sb.shippingbackend.service;
 
-import com.sb.shippingbackend.dto.ReqRes;
+import com.sb.shippingbackend.dto.*;
+import com.sb.shippingbackend.entity.Company;
 import com.sb.shippingbackend.entity.Customer;
+import com.sb.shippingbackend.entity.NormalCustomer;
 import com.sb.shippingbackend.entity.User;
+import com.sb.shippingbackend.repository.CompanyRepository;
 import com.sb.shippingbackend.repository.CustomerRepository;
+import com.sb.shippingbackend.repository.NormalCustomerRepository;
 import com.sb.shippingbackend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 
@@ -33,7 +38,14 @@ public class AuthService {
     @Autowired
     private CustomerRepository customerRepository;
 
-    public ReqRes signUp(ReqRes registrationRequest) {
+    @Autowired
+    private CompanyRepository companyRepository;
+
+    @Autowired
+    private NormalCustomerRepository normalRepository;
+
+    @Transactional
+    public ReqRes signUp(SignUpAuthReq registrationRequest) {
         ReqRes resp = new ReqRes();
         try {
             if (userRepository.existsByEmail(registrationRequest.getEmail())) {
@@ -42,18 +54,31 @@ public class AuthService {
                 return resp;
             }
             User user = new User();
-            Customer customer = new Customer();
             System.out.println(user.getId());
             user.setEmail(registrationRequest.getEmail());
             user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
             user.setRole(registrationRequest.getRole());
             User userResult = userRepository.save(user);
 
+            Customer customer = new Customer();
             customer.setName(registrationRequest.getName());
             customer.setPhoneNumber(registrationRequest.getPhoneNumber());
             customer.setUser(user);
             customerRepository.save(customer);
-            if(userResult != null && userResult.getId() > 0) {
+            if(registrationRequest.getIdCode() != null)
+            {
+                NormalCustomer normalCustomer = new NormalCustomer();
+                normalCustomer.setId(customer.getId());
+                normalCustomer.setIdCode(registrationRequest.getIdCode());
+                normalRepository.save(normalCustomer);
+            }
+            else {
+                Company company = new Company();
+                company.setId(customer.getId());
+                company.setTaxCode(registrationRequest.getTaxCode());
+                companyRepository.save(company);
+            }
+            if(userResult.getId() > 0) {
                 resp.setUser(userResult);
                 resp.setMessage("Successful!");
                 resp.setStatusCode(200);
@@ -61,14 +86,15 @@ public class AuthService {
         }catch (Exception e) {
             resp.setStatusCode(500);
             resp.setError(e.getMessage());
+            throw e;
         }
         return resp;
     }
-    public ReqRes signIn(ReqRes signinRequest) {
+    public ReqRes signIn(SignInAuthReq signInAuthRequest) {
         ReqRes resp = new ReqRes();
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(signinRequest.getEmail(),signinRequest.getPassword()));
-            var user = userRepository.findByEmail(signinRequest.getEmail()).orElseThrow();
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(signInAuthRequest.getEmail(),signInAuthRequest.getPassword()));
+            var user = userRepository.findByEmail(signInAuthRequest.getEmail()).orElseThrow();
             System.out.println("user is: "+ user);
             var jwt = jwtUtils.generateToken(user);
             var refreshToken = jwtUtils.generateRefreshToken(new HashMap<>(), user);
@@ -83,7 +109,7 @@ public class AuthService {
         }
         return resp;
     }
-    public ReqRes refreshToken(ReqRes refreshRequest) {
+    public ReqRes refreshToken(RefreshTokenAuthReq refreshRequest) {
         ReqRes resp = new ReqRes();
         String userEmail = jwtUtils.extractUsername(refreshRequest.getToken());
         User users = userRepository.findByEmail(userEmail).orElseThrow();

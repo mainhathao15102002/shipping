@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Data
@@ -39,4 +40,7 @@ public class Order {
     @OneToOne(mappedBy = "order")
     @JsonIgnore
     private Bill bill;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Merchandise> merchandiseList;
 }

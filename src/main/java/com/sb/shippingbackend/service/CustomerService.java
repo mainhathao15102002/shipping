@@ -1,6 +1,8 @@
 package com.sb.shippingbackend.service;
 
 import com.sb.shippingbackend.dto.ReqRes;
+import com.sb.shippingbackend.dto.AddressReq;
+import com.sb.shippingbackend.dto.UpdateCustomerReq;
 import com.sb.shippingbackend.entity.Address;
 import com.sb.shippingbackend.entity.AdressId;
 import com.sb.shippingbackend.entity.Customer;
@@ -21,7 +23,7 @@ public class CustomerService {
     @Autowired
     private AddressRepository addressRepository;
 
-    public ReqRes addAddress(ReqRes addRequest) {
+    public ReqRes addAddress(AddressReq addRequest) {
         ReqRes resp = new ReqRes();
         try {
             Customer customer = customerRepository.findById(addRequest.getCustomerId()).orElse(null);
@@ -46,7 +48,7 @@ public class CustomerService {
         }
         return resp;
     }
-    public ReqRes updateAddress(ReqRes updateRequest) {
+    public ReqRes updateAddress(AddressReq updateRequest) {
         ReqRes resp = new ReqRes();
         try {
             Optional<Address> optionalAddress = addressRepository.findByCustomerId(updateRequest.getCustomerId());
@@ -76,8 +78,7 @@ public class CustomerService {
         }
         return resp;
     }
-
-    public ReqRes updateCustomer(ReqRes updateRequest) {
+    public ReqRes updateCustomer(UpdateCustomerReq updateRequest) {
         ReqRes resp = new ReqRes();
         try {
             String updatedId = updateRequest.getCustomerId();

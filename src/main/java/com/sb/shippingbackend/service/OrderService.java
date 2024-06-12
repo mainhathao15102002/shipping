@@ -1,14 +1,17 @@
 package com.sb.shippingbackend.service;
 
+import com.sb.shippingbackend.dto.CreateOrderReq;
 import com.sb.shippingbackend.dto.ReqRes;
+import com.sb.shippingbackend.dto.UpdateOrderReq;
 import com.sb.shippingbackend.entity.Bill;
-import com.sb.shippingbackend.entity.Customer;
+import com.sb.shippingbackend.entity.Merchandise;
 import com.sb.shippingbackend.entity.Order;
 import com.sb.shippingbackend.repository.BillRepository;
+import com.sb.shippingbackend.repository.MerchandisRepository;
 import com.sb.shippingbackend.repository.OrderRepository;
-import org.aspectj.weaver.ast.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OrderService {
@@ -18,7 +21,11 @@ public class OrderService {
     @Autowired
     private BillRepository billRepository;
 
-    public ReqRes createOrder(ReqRes createRequest) {
+    @Autowired
+    private MerchandisRepository merchandisRepository;
+
+    @Transactional
+    public ReqRes createOrder(CreateOrderReq createRequest) {
         ReqRes resp = new ReqRes();
         try {
             Order order = new Order();
@@ -31,14 +38,27 @@ public class OrderService {
             order.setTotalWeight(createRequest.getTotalWeight());
             Order orderResult = orderRepository.save(order);
 
+            createRequest.getMerchandiseList().forEach(item ->
+            {
+                Merchandise merchandise = new Merchandise();
+                merchandise.setDesc(item.getDesc());
+                merchandise.setSize(item.getSize());
+                merchandise.setValue(item.getValue());
+                merchandise.setWeight(item.getWeight());
+                merchandise.setImageUrl(item.getImageUrl());
+                merchandise.setOrder(order);
+                merchandisRepository.save(merchandise);
+            });
+
             Bill bill = new Bill();
             bill.setTotalCost(createRequest.getTotalCost());
             bill.setCreatedDate(createRequest.getCreatedDate());
             bill.setBillStatus(createRequest.getBillStatus());
             bill.setOrder(order);
             billRepository.save(bill);
-            if(orderResult != null && !orderResult.getId().isEmpty()) {
+            if(!orderResult.getId().isEmpty()) {
                 resp.setOrder(orderResult);
+                resp.setMerchandiseList(orderResult.getMerchandiseList());
                 resp.setMessage("Successful!");
                 resp.setStatusCode(200);
             }
@@ -53,7 +73,7 @@ public class OrderService {
         return resp;
     }
 
-    public ReqRes updateOrder(ReqRes updateRequest) {
+    public ReqRes updateOrder(UpdateOrderReq updateRequest) {
         ReqRes resp = new ReqRes();
         try {
             String updatedId = updateRequest.getOrderId();

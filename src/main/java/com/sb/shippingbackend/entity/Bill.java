@@ -27,6 +27,5 @@ public class Bill {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "mavandon")
-
     private Order order;
 }

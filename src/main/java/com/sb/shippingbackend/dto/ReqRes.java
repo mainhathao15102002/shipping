@@ -2,14 +2,12 @@ package com.sb.shippingbackend.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.sb.shippingbackend.entity.Address;
-import com.sb.shippingbackend.entity.AdressId;
-import com.sb.shippingbackend.entity.Order;
-import com.sb.shippingbackend.entity.User;
+import com.sb.shippingbackend.entity.*;
 import jakarta.persistence.Column;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -33,7 +31,6 @@ public class ReqRes
     private User user;
     private Double totalCost;
     private LocalDate createdDate;
-    private byte billStatus;
     private String receiverName;
     private String receiverAddress;
     private Double totalWeight;
@@ -44,5 +41,8 @@ public class ReqRes
     private String address;
     private Address addressObject;
     private AdressId adressId;
+    private String idCode;
+    private String taxCode;
+    private List<Merchandise> merchandiseList;
 
 }

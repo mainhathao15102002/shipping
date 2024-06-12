@@ -1,7 +1,8 @@
 package com.sb.shippingbackend.controller;
 
 import com.sb.shippingbackend.dto.ReqRes;
-import com.sb.shippingbackend.repository.AddressRepository;
+import com.sb.shippingbackend.dto.AddressReq;
+import com.sb.shippingbackend.dto.UpdateCustomerReq;
 import com.sb.shippingbackend.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,17 +17,17 @@ public class CustomerController {
 
 
     @PostMapping("/addAddress")
-    public ResponseEntity<ReqRes> addAddress(@RequestBody ReqRes addRequest) {
+    public ResponseEntity<ReqRes> addAddress(@RequestBody AddressReq addRequest) {
         return ResponseEntity.ok(customerService.addAddress(addRequest));
     }
 
     @PutMapping("/updateAddress")
-    public ResponseEntity<ReqRes> updateAddress(@RequestBody ReqRes updateRequest) {
+    public ResponseEntity<ReqRes> updateAddress(@RequestBody AddressReq updateRequest) {
         return ResponseEntity.ok(customerService.updateAddress(updateRequest));
     }
 
     @PutMapping("/update")
-    public ResponseEntity<ReqRes> update(@RequestBody ReqRes updateRequest) {
+    public ResponseEntity<ReqRes> update(@RequestBody UpdateCustomerReq updateRequest) {
         return ResponseEntity.ok(customerService.updateCustomer(updateRequest));
     }
 
