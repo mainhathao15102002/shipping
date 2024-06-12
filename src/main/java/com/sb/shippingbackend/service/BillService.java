@@ -1,7 +1,8 @@
 package com.sb.shippingbackend.service;
 
-import com.sb.shippingbackend.dto.ReqRes;
-import com.sb.shippingbackend.dto.UpdateBillStatusReq;
+import com.sb.shippingbackend.dto.response.BillResponse;
+import com.sb.shippingbackend.dto.response.ReqRes;
+import com.sb.shippingbackend.dto.request.UpdateBillStatusReq;
 import com.sb.shippingbackend.entity.Bill;
 import com.sb.shippingbackend.repository.BillRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +27,16 @@ public class BillService {
                 .collect(Collectors.toList());
     }
 
-//    public Bill findBillByShippingCode(String shippingCode) {
-//        return billRepository.findByShippingCode(shippingCode);
-//    }
+    public BillResponse findBillByOrder_Id(String orderId) {
+        BillResponse resp = new BillResponse();
+        Bill bill = billRepository.findBillByOrder_Id(orderId);
+        resp.setBillId(bill.getId());
+        resp.setOrderId(bill.getOrder().getId());
+        resp.setCreatedDate(bill.getCreatedDate());
+        resp.setTotalCost(bill.getTotalCost());
+        resp.setBillStatus(bill.getBillStatus());
+        return resp;
+    }
 
     public ReqRes updateStatus(UpdateBillStatusReq updateReq) {
         ReqRes resp = new ReqRes();

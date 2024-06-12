@@ -1,8 +1,8 @@
 package com.sb.shippingbackend.service;
 
-import com.sb.shippingbackend.dto.CreateOrderReq;
-import com.sb.shippingbackend.dto.ReqRes;
-import com.sb.shippingbackend.dto.UpdateOrderReq;
+import com.sb.shippingbackend.dto.request.CreateOrderReq;
+import com.sb.shippingbackend.dto.response.ReqRes;
+import com.sb.shippingbackend.dto.request.UpdateOrderReq;
 import com.sb.shippingbackend.entity.Bill;
 import com.sb.shippingbackend.entity.Merchandise;
 import com.sb.shippingbackend.entity.Order;

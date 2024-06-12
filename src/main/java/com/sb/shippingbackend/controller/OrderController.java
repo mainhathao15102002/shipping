@@ -1,9 +1,8 @@
 package com.sb.shippingbackend.controller;
 
-import com.sb.shippingbackend.dto.CreateOrderReq;
-import com.sb.shippingbackend.dto.ReqRes;
-import com.sb.shippingbackend.dto.UpdateOrderReq;
-import com.sb.shippingbackend.repository.OrderRepository;
+import com.sb.shippingbackend.dto.request.CreateOrderReq;
+import com.sb.shippingbackend.dto.response.ReqRes;
+import com.sb.shippingbackend.dto.request.UpdateOrderReq;
 import com.sb.shippingbackend.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

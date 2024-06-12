@@ -1,8 +1,8 @@
 package com.sb.shippingbackend.controller;
 
-import com.sb.shippingbackend.dto.ReqRes;
-import com.sb.shippingbackend.dto.AddressReq;
-import com.sb.shippingbackend.dto.UpdateCustomerReq;
+import com.sb.shippingbackend.dto.response.ReqRes;
+import com.sb.shippingbackend.dto.request.AddressReq;
+import com.sb.shippingbackend.dto.request.UpdateCustomerReq;
 import com.sb.shippingbackend.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

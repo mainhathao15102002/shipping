@@ -1,9 +1,8 @@
-package com.sb.shippingbackend.dto;
+package com.sb.shippingbackend.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.sb.shippingbackend.entity.*;
-import jakarta.persistence.Column;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -44,5 +43,4 @@ public class ReqRes
     private String idCode;
     private String taxCode;
     private List<Merchandise> merchandiseList;
-
 }

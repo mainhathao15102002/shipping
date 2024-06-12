@@ -1,8 +1,8 @@
 package com.sb.shippingbackend.service;
 
-import com.sb.shippingbackend.dto.ReqRes;
-import com.sb.shippingbackend.dto.AddressReq;
-import com.sb.shippingbackend.dto.UpdateCustomerReq;
+import com.sb.shippingbackend.dto.response.ReqRes;
+import com.sb.shippingbackend.dto.request.AddressReq;
+import com.sb.shippingbackend.dto.request.UpdateCustomerReq;
 import com.sb.shippingbackend.entity.Address;
 import com.sb.shippingbackend.entity.AdressId;
 import com.sb.shippingbackend.entity.Customer;
