@@ -2,7 +2,9 @@ package com.sb.shippingbackend.service;
 
 import com.sb.shippingbackend.repository.TokenRepository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -61,8 +63,11 @@ public class JWTUtils {
         return (extractedUsername.equals(userDetails.getUsername()) && !isTokenExpired(token)) && isValidToken ;
     }
 
-    private Boolean isTokenExpired(String token) {
+    public Boolean isTokenExpired(String token) {
         return extractClaim(token,Claims::getExpiration).before(new Date());
     }
+
+
+
 
 }

@@ -34,5 +34,37 @@ public class AuthController {
         return ResponseEntity.ok(authService.refreshToken(refreshTokenRequest));
     }
 
+    @PostMapping("/checkTokenExpiry")
+    public ResponseEntity<?> checkTokenExpiry(HttpServletRequest request) {
+        final String authHeader = request.getHeader("Authorization");
+
+        if(authHeader == null || authHeader.isBlank()) {
+            return ResponseEntity.status(500).body("NOT VALID");
+        }
+
+        String token = authHeader.substring(7);
+        boolean isExpired = authService.checkTokenExpired(token);
+        if (isExpired) {
+            return ResponseEntity.status(401).body("Token has expired");
+        }
+        return ResponseEntity.ok("Token is still valid");
+
+
+    }
+
+    @GetMapping("/checkTokenOrigin")
+    public ResponseEntity<?> checkTokenOrigin(@RequestHeader("Authorization") String token) {
+        if(token == null || token.isBlank()) {
+            return ResponseEntity.status(401).body("Token is invalid");
+        }
+        String jwtToken = token.substring(7);
+        Boolean isValid = authService.checkTokenIsValid(jwtToken);
+        if (isValid) {
+            return ResponseEntity.status(401).body("Token is invalid");
+        }
+        return ResponseEntity.ok("Token is still valid");
+
+    }
+
 
 }

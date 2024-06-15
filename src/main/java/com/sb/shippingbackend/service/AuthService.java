@@ -6,6 +6,10 @@ import com.sb.shippingbackend.dto.request.SignUpAuthReq;
 import com.sb.shippingbackend.dto.response.ReqRes;
 import com.sb.shippingbackend.entity.*;
 import com.sb.shippingbackend.repository.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -108,6 +112,8 @@ public class AuthService {
             resp.setStatusCode(200);
             resp.setToken(jwt);
             resp.setRefreshToken(refreshToken);
+            resp.setCustomerId(customerRepository.findByUserId(user.getId()).getId());
+            resp.setRole(user.getRole());
             resp.setExpirationTime("24Hr");
             resp.setMessage("Successful!");
         }catch (Exception e) {
@@ -133,13 +139,6 @@ public class AuthService {
         return resp;
     }
 
-    public String logout(String token)
-    {
-        User user = userRepository.findByEmail(jwtUtils.extractUsername(token)).orElseThrow();
-        revokeToken(user);
-        return "Signed Out!";
-
-    }
 
     private void revokeToken(User user) {
         List<Token> validTokenListByUser = tokenRepository.findAllTokenByUser(user.getId());
@@ -150,4 +149,16 @@ public class AuthService {
         }
         tokenRepository.saveAll(validTokenListByUser);
     }
+
+    public Boolean checkTokenExpired(String token) {
+        return jwtUtils.isTokenExpired(token);
+    }
+
+    public Boolean checkTokenIsValid(String token) {
+        String userEmail =  jwtUtils.extractUsername(token);
+        return jwtUtils.isTokenValid(token, userService.loadUserByUsername(userEmail));
+    }
+
+
+
 }
