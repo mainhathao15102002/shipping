@@ -39,15 +39,15 @@ public class AuthController {
         final String authHeader = request.getHeader("Authorization");
 
         if(authHeader == null || authHeader.isBlank()) {
-            return ResponseEntity.status(500).body("NOT VALID");
+            return ResponseEntity.status(500).body("NOT VALID TOKEN");
         }
 
         String token = authHeader.substring(7);
         boolean isExpired = authService.checkTokenExpired(token);
         if (isExpired) {
-            return ResponseEntity.status(401).body("Token has expired");
+            return ResponseEntity.ok(true);
         }
-        return ResponseEntity.ok("Token is still valid");
+        return ResponseEntity.ok(false);
 
 
     }
@@ -60,9 +60,9 @@ public class AuthController {
         String jwtToken = token.substring(7);
         Boolean isValid = authService.checkTokenIsValid(jwtToken);
         if (isValid) {
-            return ResponseEntity.status(401).body("Token is invalid");
+            return ResponseEntity.status(401).body("Token is valid");
         }
-        return ResponseEntity.ok("Token is still valid");
+        return ResponseEntity.ok("Token is in valid");
 
     }
 

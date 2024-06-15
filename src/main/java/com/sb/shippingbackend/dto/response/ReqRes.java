@@ -44,4 +44,5 @@ public class ReqRes
     private String idCode;
     private String taxCode;
     private List<Merchandise> merchandiseList;
+    private List<Address> addressList;
 }

@@ -15,6 +15,14 @@ public class CustomerController {
     @Autowired
     private CustomerService customerService;
 
+    @GetMapping("/{customerId}/addresses")
+    public ResponseEntity<ReqRes> getAllAddressesByCustomerId(@PathVariable String customerId) {
+        return ResponseEntity.ok(customerService.getAllAddressesByCustomerId(customerId));
+    }
+    @GetMapping("/{customerId}/getAddress")
+    public ReqRes getAddressByCustomerIdAndAddress(@PathVariable String customerId) {
+        return customerService.getAddressByCustomerId(customerId);
+    }
 
     @PostMapping("/addAddress")
     public ResponseEntity<ReqRes> addAddress(@RequestBody AddressReq addRequest) {

@@ -63,8 +63,14 @@ public class JWTUtils {
         return (extractedUsername.equals(userDetails.getUsername()) && !isTokenExpired(token)) && isValidToken ;
     }
 
-    public Boolean isTokenExpired(String token) {
+    private Boolean isTokenExpired(String token) {
         return extractClaim(token,Claims::getExpiration).before(new Date());
+    }
+
+    public Boolean checkTokenExpired(String token)
+    {
+        return extractClaim(token,Claims::getExpiration).before(new Date());
+
     }
 
 

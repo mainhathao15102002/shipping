@@ -11,6 +11,7 @@ import com.sb.shippingbackend.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -151,5 +152,39 @@ public class CustomerService {
         return resp;
     }
 
-
-}
+    public ReqRes getAddressByCustomerId(String customerId) {
+        ReqRes resp = new ReqRes();
+        try {
+            Optional<Address> optionalAddress = addressRepository.findByCustomerId(customerId);
+            if (optionalAddress.isPresent()) {
+                resp.setAddressObject(optionalAddress.get());
+                resp.setMessage("Address found successfully!");
+                resp.setStatusCode(200);
+            } else {
+                resp.setMessage("Address not found for the given customer!");
+                resp.setStatusCode(404);
+            }
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
+    public ReqRes getAllAddressesByCustomerId(String customerId) {
+        ReqRes resp = new ReqRes();
+        try {
+            List<Address> addresses = addressRepository.findAllByCustomerId(customerId);
+            if (addresses.isEmpty()) {
+                resp.setMessage("No addresses found for the given customer!");
+                resp.setStatusCode(404);
+            } else {
+                resp.setAddressList(addresses);
+                resp.setMessage("Addresses found successfully!");
+                resp.setStatusCode(200);
+            }
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }}
