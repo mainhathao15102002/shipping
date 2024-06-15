@@ -33,7 +33,7 @@ public class Merchandise {
 
     @Column(name = "soluong")
     private int quantity;
-    @OneToMany(mappedBy = "merchandise")
+    @OneToMany(mappedBy = "merchandise", fetch = FetchType.LAZY)
     private List<ListSpecicalPropOfMerchandise> list = new ArrayList<>();
 
     @ManyToOne

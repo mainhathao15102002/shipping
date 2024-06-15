@@ -19,7 +19,7 @@ public class SpecialProps {
     @Column(name = "tentinhchat")
     private String propName;
 
-    @OneToMany(mappedBy = "specialProps")
+    @OneToMany(mappedBy = "specialProps",fetch = FetchType.LAZY)
     @JsonIgnore
     private List<ListSpecicalPropOfMerchandise> list = new ArrayList<>();
 

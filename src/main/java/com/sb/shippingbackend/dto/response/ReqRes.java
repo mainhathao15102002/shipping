@@ -34,6 +34,7 @@ public class ReqRes
     private String receiverAddress;
     private Double totalWeight;
     private String note;
+    private  Customer customer;
     private String receiverPhone;
     private String deliverMethod;
     private Order order;

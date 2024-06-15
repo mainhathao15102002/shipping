@@ -23,6 +23,7 @@ public class CreateOrderReq {
     private byte billStatus;
     private Double totalCost;
     private int quantity;
+    private String customerId;
     private List<Merchandise> merchandiseList;
 
 

@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -27,14 +28,19 @@ public class OrderService {
 
     @Autowired
     private ListPropOfMerchRepository listPropOfMerchRepository;
+
     @Autowired
     private SpecicalPropRepository specicalPropRepository;
+
+    @Autowired
+    private CustomerRepository customerRepository;
 
     @Transactional
     public ReqRes createOrder(CreateOrderReq createRequest) {
         ReqRes resp = new ReqRes();
         try {
             Order order = new Order();
+            Optional<Customer> optionalCustomer = customerRepository.findById(createRequest.getCustomerId());;
             order.setReceiverName(createRequest.getReceiverName());
             order.setReceiverAddress(createRequest.getReceiverAddress());
             order.setCreatedDate(createRequest.getCreatedDate());
@@ -42,6 +48,8 @@ public class OrderService {
             order.setDeliverMethod(createRequest.getDeliverMethod());
             order.setReceiverPhone(createRequest.getReceiverPhone());
             order.setTotalWeight(createRequest.getTotalWeight());
+            optionalCustomer.ifPresent(order::setCustomer);
+
             Order orderResult = orderRepository.save(order);
             createRequest.getMerchandiseList().forEach((item) ->
             {
@@ -129,4 +137,31 @@ public class OrderService {
         return resp;
     }
 
+    public List<Order> getAllOrder() {
+        return orderRepository.findAllOrder();
+    }
+
+    public List<Order> findOrdersByCustomerId(String customerId) {
+        return orderRepository.findByCustomerId(customerId);
+    }
+
+
+    public ReqRes findOrderByOrderId(String orderId) {
+        ReqRes resp = new ReqRes();
+        try {
+            Order order = orderRepository.findById(orderId).orElse(null);
+            if (order != null) {
+                resp.setOrder(order);
+                resp.setMessage("Order found successfully!");
+                resp.setStatusCode(200);
+            } else {
+                resp.setMessage("Order not found!");
+                resp.setStatusCode(404);
+            }
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
 }

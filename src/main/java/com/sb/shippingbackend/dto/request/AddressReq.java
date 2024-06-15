@@ -10,4 +10,6 @@ import lombok.Data;
 public class AddressReq {
     private String customerId;
     private String address;
+    private String phoneNumber;
+    private String name;
 }

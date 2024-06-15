@@ -35,4 +35,9 @@ public class CustomerController {
     public ResponseEntity<ReqRes> delete(@RequestBody ReqRes deleteRequest) {
         return ResponseEntity.ok(customerService.deleteCustomer(deleteRequest));
     }
+
+    @GetMapping("/{customerId}")
+    public ReqRes getCustomerById(@PathVariable String customerId) {
+        return customerService.findCustomerById(customerId);
+    }
 }

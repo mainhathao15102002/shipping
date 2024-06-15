@@ -33,6 +33,8 @@ public class CustomerService {
                 addressId.setAddress(addRequest.getAddress());
                 addressId.setId(addRequest.getCustomerId());
                 address.setAddressId(addressId);
+                address.setPhoneNumber(addRequest.getPhoneNumber());
+                address.setName(addRequest.getName());
                 address.setCustomer(customer);
                 Address addressResult = addressRepository.save(address);
                 if(addressResult != null && !addressResult.getAddressId().getId().isEmpty()) {
@@ -56,7 +58,16 @@ public class CustomerService {
             if (optionalAddress.isPresent()) {
                 Address address = optionalAddress.get();
 
-                address.getAddressId().setAddress(updateRequest.getAddress());
+                if (!updateRequest.getAddress().isEmpty())
+                {
+                    address.getAddressId().setAddress(updateRequest.getAddress());
+                }
+                if(!updateRequest.getName().isEmpty())
+                {
+                    address.setName(updateRequest.getName());
+                } else if (!updateRequest.getPhoneNumber().isEmpty()) {
+                    address.setPhoneNumber(updateRequest.getPhoneNumber());
+                }
 
                 Address addressResult = addressRepository.save(address);
 
@@ -120,4 +131,25 @@ public class CustomerService {
         }
         return resp;
     }
+
+    public ReqRes findCustomerById(String customerId) {
+        ReqRes resp = new ReqRes();
+        try {
+            Optional<Customer> optionalCustomer = customerRepository.findById(customerId);
+            if (optionalCustomer.isPresent()) {
+                resp.setCustomer(optionalCustomer.get());
+                resp.setMessage("Customer found successfully!");
+                resp.setStatusCode(200);
+            } else {
+                resp.setMessage("Customer not found!");
+                resp.setStatusCode(404);
+            }
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
+
+
 }

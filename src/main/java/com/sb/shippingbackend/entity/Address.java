@@ -11,6 +11,12 @@ public class Address {
     @EmbeddedId
     private AdressId addressId;
 
+    @Column(name = "sdtnguoigui")
+    private String phoneNumber;
+
+    @Column(name = "tennguoigui")
+    private String name;
+
     @ManyToOne
     @MapsId("id")
     @JoinColumn(name = "ma", referencedColumnName = "ma")

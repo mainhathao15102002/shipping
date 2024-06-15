@@ -3,12 +3,14 @@ package com.sb.shippingbackend.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Entity
 @Data
+@EqualsAndHashCode
 @Table(name = "vandon")
 public class Order {
     @Id
@@ -39,12 +41,16 @@ public class Order {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trangthai")
-    private OrderStatus status;
+    private OrderStatus status = OrderStatus.PENDING;;
 
-    @OneToOne(mappedBy = "order")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ma")
+    private Customer customer;
+
+    @OneToOne(mappedBy = "order", fetch = FetchType.LAZY)
     @JsonIgnore
     private Bill bill;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
     private List<Merchandise> merchandiseList;
 }
