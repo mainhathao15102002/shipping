@@ -147,10 +147,9 @@ public class AuthService {
             }
 
             if (userResult.getId() > 0) {
-                resp.setUser(userResult);
                 resp.setMessage("Successful!");
                 resp.setStatusCode(200);
-                tempRegistrations.remove(email); // Remove temp registration after successful registration
+                tempRegistrations.remove(email);
             }
         } catch (Exception e) {
             resp.setStatusCode(500);
