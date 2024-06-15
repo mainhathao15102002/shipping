@@ -1,7 +1,11 @@
 package com.sb.shippingbackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -26,6 +30,11 @@ public class Merchandise {
 
     @Column(name = "kichthuoc")
     private String  size;
+
+    @Column(name = "soluong")
+    private int quantity;
+    @OneToMany(mappedBy = "merchandise")
+    private List<ListSpecicalPropOfMerchandise> list = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "mavandon", nullable = false)

@@ -5,12 +5,13 @@ import com.sb.shippingbackend.dto.request.SignInAuthReq;
 import com.sb.shippingbackend.dto.request.SignUpAuthReq;
 import com.sb.shippingbackend.dto.response.ReqRes;
 import com.sb.shippingbackend.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -32,4 +33,6 @@ public class AuthController {
     public ResponseEntity<ReqRes> refreshToken(@RequestBody RefreshTokenAuthReq refreshTokenRequest) {
         return ResponseEntity.ok(authService.refreshToken(refreshTokenRequest));
     }
+
+
 }

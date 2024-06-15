@@ -4,14 +4,8 @@ import com.sb.shippingbackend.dto.request.RefreshTokenAuthReq;
 import com.sb.shippingbackend.dto.request.SignInAuthReq;
 import com.sb.shippingbackend.dto.request.SignUpAuthReq;
 import com.sb.shippingbackend.dto.response.ReqRes;
-import com.sb.shippingbackend.entity.Company;
-import com.sb.shippingbackend.entity.Customer;
-import com.sb.shippingbackend.entity.NormalCustomer;
-import com.sb.shippingbackend.entity.User;
-import com.sb.shippingbackend.repository.CompanyRepository;
-import com.sb.shippingbackend.repository.CustomerRepository;
-import com.sb.shippingbackend.repository.NormalCustomerRepository;
-import com.sb.shippingbackend.repository.UserRepository;
+import com.sb.shippingbackend.entity.*;
+import com.sb.shippingbackend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.List;
 
 @Service
 public class AuthService {
@@ -46,6 +41,9 @@ public class AuthService {
 
     @Autowired
     private NormalCustomerRepository normalRepository;
+
+    @Autowired
+    private TokenRepository tokenRepository;
 
     @Transactional
     public ReqRes signUp(SignUpAuthReq registrationRequest) {
@@ -98,9 +96,15 @@ public class AuthService {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(signInAuthRequest.getEmail(),signInAuthRequest.getPassword()));
             var user = userRepository.findByEmail(signInAuthRequest.getEmail()).orElseThrow();
-            System.out.println("user is: "+ user);
+            revokeToken(user);
             var jwt = jwtUtils.generateToken(user);
             var refreshToken = jwtUtils.generateRefreshToken(new HashMap<>(), user);
+            Token token = new Token();
+            token.setLoggedOut(false);
+            token.setToken(jwt);
+            token.setUser(user);
+
+            tokenRepository.save(token);
             resp.setStatusCode(200);
             resp.setToken(jwt);
             resp.setRefreshToken(refreshToken);
@@ -127,5 +131,23 @@ public class AuthService {
         }
         resp.setStatusCode(500);
         return resp;
+    }
+
+    public String logout(String token)
+    {
+        User user = userRepository.findByEmail(jwtUtils.extractUsername(token)).orElseThrow();
+        revokeToken(user);
+        return "Signed Out!";
+
+    }
+
+    private void revokeToken(User user) {
+        List<Token> validTokenListByUser = tokenRepository.findAllTokenByUser(user.getId());
+        if(!validTokenListByUser.isEmpty())
+        {
+            validTokenListByUser.forEach(t ->
+                    t.setLoggedOut(true));
+        }
+        tokenRepository.saveAll(validTokenListByUser);
     }
 }

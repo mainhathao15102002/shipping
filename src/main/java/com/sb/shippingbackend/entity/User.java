@@ -28,11 +28,13 @@ public class User implements UserDetails {
     @Column(name = "loaitaikhoan")
     private String role;
 
-    @OneToOne(mappedBy = "user")
+    @OneToMany(mappedBy = "user")
+    private List<Token> tokenList;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role));
     }
+
 
 
     @Override

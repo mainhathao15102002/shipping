@@ -1,5 +1,6 @@
 package com.sb.shippingbackend.service;
 
+import com.sb.shippingbackend.repository.TokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,13 +16,15 @@ import java.util.function.Function;
 
 @Component
 public class JWTUtils {
+    private final TokenRepository tokenRepository;
     private SecretKey key;
     private static final long EXPIRATION_TIME  = 86400000;
 
-    public JWTUtils(){
+    public JWTUtils(TokenRepository tokenRepository){
         String secretString = "abcdefkasdlnascon1128u39123n1kj23nanc1k23123mn123ku";
         byte[] keyBytes = Base64.getDecoder().decode(secretString.getBytes(StandardCharsets.UTF_8));
         this.key = new SecretKeySpec(keyBytes,"HmacSHA256");
+        this.tokenRepository = tokenRepository;
     }
     public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
@@ -53,7 +56,9 @@ public class JWTUtils {
 
     public Boolean isTokenValid(String token, UserDetails userDetails) {
         final String extractedUsername = extractUsername(token);
-        return (extractedUsername.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        boolean isValidToken = tokenRepository.findByToken(token)
+                .map(t -> !t.isLoggedOut()).orElse(false);
+        return (extractedUsername.equals(userDetails.getUsername()) && !isTokenExpired(token)) && isValidToken ;
     }
 
     private Boolean isTokenExpired(String token) {

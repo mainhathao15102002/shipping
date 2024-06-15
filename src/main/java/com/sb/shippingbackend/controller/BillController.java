@@ -19,7 +19,11 @@ public class BillController {
     }
 
     @GetMapping("/adminuser/bill/getBillByOrderId/{orderId}")
-    public ResponseEntity<BillResponse> updateStatus(@PathVariable String orderId) {
+    public ResponseEntity<BillResponse> searchBillByOrderId(@PathVariable String orderId) {
         return ResponseEntity.ok(billService.findBillByOrder_Id(orderId));
+    }
+    @GetMapping("/adminuser/bill/{id}")
+    public ResponseEntity<BillResponse> searchBillById(@PathVariable String billId) {
+        return ResponseEntity.ok(billService.findBillById(billId));
     }
 }

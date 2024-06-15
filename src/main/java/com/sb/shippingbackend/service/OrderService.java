@@ -3,15 +3,15 @@ package com.sb.shippingbackend.service;
 import com.sb.shippingbackend.dto.request.CreateOrderReq;
 import com.sb.shippingbackend.dto.response.ReqRes;
 import com.sb.shippingbackend.dto.request.UpdateOrderReq;
-import com.sb.shippingbackend.entity.Bill;
-import com.sb.shippingbackend.entity.Merchandise;
-import com.sb.shippingbackend.entity.Order;
-import com.sb.shippingbackend.repository.BillRepository;
-import com.sb.shippingbackend.repository.MerchandisRepository;
-import com.sb.shippingbackend.repository.OrderRepository;
+import com.sb.shippingbackend.entity.*;
+import com.sb.shippingbackend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class OrderService {
@@ -23,6 +23,11 @@ public class OrderService {
 
     @Autowired
     private MerchandisRepository merchandisRepository;
+
+    @Autowired
+    private ListPropOfMerchRepository listPropOfMerchRepository;
+    @Autowired
+    private SpecicalPropRepository specicalPropRepository;
 
     @Transactional
     public ReqRes createOrder(CreateOrderReq createRequest) {
@@ -37,8 +42,7 @@ public class OrderService {
             order.setReceiverPhone(createRequest.getReceiverPhone());
             order.setTotalWeight(createRequest.getTotalWeight());
             Order orderResult = orderRepository.save(order);
-
-            createRequest.getMerchandiseList().forEach(item ->
+            createRequest.getMerchandiseList().forEach((item) ->
             {
                 Merchandise merchandise = new Merchandise();
                 merchandise.setDesc(item.getDesc());
@@ -46,8 +50,27 @@ public class OrderService {
                 merchandise.setValue(item.getValue());
                 merchandise.setWeight(item.getWeight());
                 merchandise.setImageUrl(item.getImageUrl());
+                merchandise.setQuantity(item.getQuantity());
                 merchandise.setOrder(order);
+                List<ListSpecicalPropOfMerchandise> list = new ArrayList<>();
+                for(int i = 0; i < item.getList().size(); i++)
+                {
+                    ListSpecicalPropOfMerchandise listSpecicalPropOfMerchandise = new ListSpecicalPropOfMerchandise();
+                    PropOfMerchId propOfMerchId = new PropOfMerchId();
+                    propOfMerchId.setMerchandiseId(merchandise.getId());
+                    Integer propId = item.getList().get(i).getPropOfMerchId().getPropId();
+                    propOfMerchId.setPropId(propId);
+                    SpecialProps specialProps = specicalPropRepository.findById(propId).orElse(null);
+                    if(specialProps != null) {
+                        listSpecicalPropOfMerchandise.setPropOfMerchId(propOfMerchId);
+                        listSpecicalPropOfMerchandise.setSpecialProps(specialProps);
+                        listSpecicalPropOfMerchandise.setMerchandise(merchandise);
+                    }
+                    list.add(listSpecicalPropOfMerchandise);
+                }
+                merchandise.setList(list);
                 merchandisRepository.save(merchandise);
+                listPropOfMerchRepository.saveAll(list);
             });
 
             Bill bill = new Bill();

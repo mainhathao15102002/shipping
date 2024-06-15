@@ -16,8 +16,18 @@ public class BillService {
     @Autowired
     private BillRepository billRepository;
 
-    public Bill findBillById(String billId) {
-        return billRepository.findById(billId).orElse(null);
+    public BillResponse findBillById(String billId) {
+        BillResponse resp = new BillResponse();
+        Bill bill = billRepository.findById(billId).orElse(null);
+        if (bill != null)
+        {
+            resp.setBillId(bill.getId());
+            resp.setOrderId(bill.getOrder().getId());
+            resp.setCreatedDate(bill.getCreatedDate());
+            resp.setTotalCost(bill.getTotalCost());
+            resp.setBillStatus(bill.getBillStatus());
+        }
+        return resp;
     }
 
     public List<Bill> getAllBills() {

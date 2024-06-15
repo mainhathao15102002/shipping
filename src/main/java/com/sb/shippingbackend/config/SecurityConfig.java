@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -25,6 +26,12 @@ public class SecurityConfig {
 
     @Autowired
     private JWTAuthFilter jwtAuthFilter;
+
+    private CustomLogoutHandler logoutHandler;
+
+    public SecurityConfig(CustomLogoutHandler logoutHandler) {
+        this.logoutHandler = logoutHandler;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -51,7 +58,10 @@ public class SecurityConfig {
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider()).addFilterBefore(
                         jwtAuthFilter, UsernamePasswordAuthenticationFilter.class
-                );
+                )
+                .logout(l ->l.logoutUrl("/auth/logout")
+                        .addLogoutHandler(logoutHandler)
+                        .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext()));
         return httpSecurity.build();
     }
     @Bean

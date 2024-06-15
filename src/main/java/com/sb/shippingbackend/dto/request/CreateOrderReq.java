@@ -3,6 +3,7 @@ package com.sb.shippingbackend.dto.request;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.sb.shippingbackend.entity.Merchandise;
+import com.sb.shippingbackend.repository.ListPropOfMerchRepository;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -21,5 +22,8 @@ public class CreateOrderReq {
     private LocalDate createdDate;
     private byte billStatus;
     private Double totalCost;
+    private int quantity;
     private List<Merchandise> merchandiseList;
+
+
 }
