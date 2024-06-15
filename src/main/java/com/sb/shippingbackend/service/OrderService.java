@@ -6,6 +6,7 @@ import com.sb.shippingbackend.dto.request.UpdateOrderReq;
 import com.sb.shippingbackend.entity.*;
 import com.sb.shippingbackend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -96,27 +97,29 @@ public class OrderService {
         return resp;
     }
 
-    public ReqRes updateOrder(UpdateOrderReq updateRequest) {
+    @Transactional
+    public ReqRes updateStatusOrder(UpdateOrderReq updateRequest) {
         ReqRes resp = new ReqRes();
         try {
             String updatedId = updateRequest.getOrderId();
             if (updatedId != null && !updatedId.isEmpty()) {
-                Order order = orderRepository.findById(updatedId).orElseThrow();
-                order.setReceiverName(updateRequest.getReceiverName());
-                order.setReceiverAddress(updateRequest.getReceiverAddress());
-                order.setCreatedDate(updateRequest.getCreatedDate());
-                order.setNote(updateRequest.getNote());
-                order.setDeliverMethod(updateRequest.getDeliverMethod());
-                order.setReceiverPhone(updateRequest.getReceiverPhone());
-                order.setTotalWeight(updateRequest.getTotalWeight());
-                Order orderResult = orderRepository.save(order);
-
-                resp.setMessage("Order updated successfully!");
-                resp.setStatusCode(200);
-                resp.setOrder(orderResult);
+                Order order = orderRepository.findById(updatedId).orElseThrow(null);
+                if(order!=null)
+                {
+                    OrderStatus orderStatus = OrderStatus.valueOf(updateRequest.getStatus());
+                    order.setStatus(orderStatus);
+                    Order orderResult = orderRepository.save(order);
+                    resp.setMessage("Order status updated successfully!");
+                    resp.setStatusCode(200);
+                    resp.setOrder(orderResult);
+                }
+                else {
+                    resp.setMessage("NOT FOUND!");
+                    resp.setStatusCode(404);
+                }
 
             } else {
-                resp.setMessage("Order not found!");
+                resp.setMessage("ERROR ORDERID");
                 resp.setStatusCode(404);
             }
         } catch (Exception e) {

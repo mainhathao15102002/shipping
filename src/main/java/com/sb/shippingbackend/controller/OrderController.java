@@ -22,6 +22,6 @@ public class OrderController {
 
     @PutMapping("/update")
     public ResponseEntity<ReqRes> update(@RequestBody UpdateOrderReq updateRequest) {
-        return ResponseEntity.ok(orderService.updateOrder(updateRequest));
+        return ResponseEntity.ok(orderService.updateStatusOrder(updateRequest));
     }
 }

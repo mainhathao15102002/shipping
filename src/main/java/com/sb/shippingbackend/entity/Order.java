@@ -37,6 +37,10 @@ public class Order {
     @Column(name = "phuongthucgiaohang")
     private String deliverMethod;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "trangthai")
+    private OrderStatus status;
+
     @OneToOne(mappedBy = "order")
     @JsonIgnore
     private Bill bill;

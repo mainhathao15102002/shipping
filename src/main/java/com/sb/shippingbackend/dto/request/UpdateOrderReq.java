@@ -10,12 +10,7 @@ import java.time.LocalDate;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UpdateOrderReq {
+    private String status;
     private String orderId;
-    private String receiverName;
-    private String receiverAddress;
-    private Double totalWeight;
-    private String note;
-    private String receiverPhone;
-    private String deliverMethod;
-    private LocalDate createdDate;
+
 }
