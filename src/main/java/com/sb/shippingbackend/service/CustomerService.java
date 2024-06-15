@@ -152,10 +152,29 @@ public class CustomerService {
         return resp;
     }
 
-    public ReqRes getAddressByCustomerId(String customerId) {
+    public ReqRes deleteAddressByAddress(String customerId, String address) {
         ReqRes resp = new ReqRes();
         try {
-            Optional<Address> optionalAddress = addressRepository.findByCustomerId(customerId);
+            Optional<Address> optionalAddress = addressRepository.findByCustomerIdAndAddress(customerId, address);
+            if (optionalAddress.isPresent()) {
+                addressRepository.delete(optionalAddress.get());
+                resp.setMessage("Address deleted successfully!");
+                resp.setStatusCode(200);
+            } else {
+                resp.setMessage("Address not found for the given customer!");
+                resp.setStatusCode(404);
+            }
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
+
+    public ReqRes getAddressByCustomerId(String customerId, String address) {
+        ReqRes resp = new ReqRes();
+        try {
+            Optional<Address> optionalAddress = addressRepository.findByCustomerIdAndAddress(customerId, address);
             if (optionalAddress.isPresent()) {
                 resp.setAddressObject(optionalAddress.get());
                 resp.setMessage("Address found successfully!");

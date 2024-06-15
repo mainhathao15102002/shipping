@@ -20,9 +20,31 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class AuthService {
+
+
+    private static class TempRegistration {
+        private SignUpAuthReq registrationRequest;
+        private String verificationCode;
+
+        public TempRegistration(SignUpAuthReq registrationRequest, String verificationCode) {
+            this.registrationRequest = registrationRequest;
+            this.verificationCode = verificationCode;
+        }
+
+        public SignUpAuthReq getRegistrationRequest() {
+            return registrationRequest;
+        }
+
+        public String getVerificationCode() {
+            return verificationCode;
+        }
+    }
+
+
     @Autowired
     private UserService userService;
 
@@ -50,6 +72,11 @@ public class AuthService {
     @Autowired
     private TokenRepository tokenRepository;
 
+    @Autowired
+    private EmailService emailService;
+
+    private Map<String, TempRegistration> tempRegistrations = new HashMap<>();
+
     @Transactional
     public ReqRes signUp(SignUpAuthReq registrationRequest) {
         ReqRes resp = new ReqRes();
@@ -59,8 +86,43 @@ public class AuthService {
                 resp.setStatusCode(400);
                 return resp;
             }
+
+            String verificationCode = emailService.generateVerificationCode();
+            emailService.sendVerificationCode(registrationRequest.getEmail(), verificationCode);
+
+            TempRegistration tempRegistration = new TempRegistration(registrationRequest, verificationCode);
+            tempRegistrations.put(registrationRequest.getEmail(), tempRegistration);
+
+            resp.setMessage("Verification code sent to email!");
+            resp.setStatusCode(200);
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+            throw e;
+        }
+        return resp;
+    }
+
+    @Transactional
+    public ReqRes verifyAndRegister(String email, String code) {
+        ReqRes resp = new ReqRes();
+        try {
+            TempRegistration tempRegistration = tempRegistrations.get(email);
+
+            if (tempRegistration == null) {
+                resp.setMessage("No registration found for this email!");
+                resp.setStatusCode(404);
+                return resp;
+            }
+
+            if (!tempRegistration.getVerificationCode().equals(code)) {
+                resp.setMessage("Invalid verification code!");
+                resp.setStatusCode(400);
+                return resp;
+            }
+
+            SignUpAuthReq registrationRequest = tempRegistration.getRegistrationRequest();
             User user = new User();
-            System.out.println(user.getId());
             user.setEmail(registrationRequest.getEmail());
             user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
             user.setRole(registrationRequest.getRole());
@@ -71,31 +133,82 @@ public class AuthService {
             customer.setPhoneNumber(registrationRequest.getPhoneNumber());
             customer.setUser(user);
             customerRepository.save(customer);
-            if(registrationRequest.getIdCode() != null)
-            {
+
+            if (registrationRequest.getIdCode() != null) {
                 NormalCustomer normalCustomer = new NormalCustomer();
                 normalCustomer.setId(customer.getId());
                 normalCustomer.setIdCode(registrationRequest.getIdCode());
                 normalRepository.save(normalCustomer);
-            }
-            else {
+            } else {
                 Company company = new Company();
                 company.setId(customer.getId());
                 company.setTaxCode(registrationRequest.getTaxCode());
                 companyRepository.save(company);
             }
-            if(userResult.getId() > 0) {
+
+            if (userResult.getId() > 0) {
                 resp.setUser(userResult);
                 resp.setMessage("Successful!");
                 resp.setStatusCode(200);
+                tempRegistrations.remove(email); // Remove temp registration after successful registration
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             resp.setStatusCode(500);
             resp.setError(e.getMessage());
             throw e;
         }
         return resp;
     }
+
+
+
+//
+//    @Transactional
+//    public ReqRes signUp(SignUpAuthReq registrationRequest) {
+//        ReqRes resp = new ReqRes();
+//        try {
+//            if (userRepository.existsByEmail(registrationRequest.getEmail())) {
+//                resp.setMessage("Email is exists!");
+//                resp.setStatusCode(400);
+//                return resp;
+//            }
+//            User user = new User();
+//            System.out.println(user.getId());
+//            user.setEmail(registrationRequest.getEmail());
+//            user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
+//            user.setRole(registrationRequest.getRole());
+//            User userResult = userRepository.save(user);
+//
+//            Customer customer = new Customer();
+//            customer.setName(registrationRequest.getName());
+//            customer.setPhoneNumber(registrationRequest.getPhoneNumber());
+//            customer.setUser(user);
+//            customerRepository.save(customer);
+//            if(registrationRequest.getIdCode() != null)
+//            {
+//                NormalCustomer normalCustomer = new NormalCustomer();
+//                normalCustomer.setId(customer.getId());
+//                normalCustomer.setIdCode(registrationRequest.getIdCode());
+//                normalRepository.save(normalCustomer);
+//            }
+//            else {
+//                Company company = new Company();
+//                company.setId(customer.getId());
+//                company.setTaxCode(registrationRequest.getTaxCode());
+//                companyRepository.save(company);
+//            }
+//            if(userResult.getId() > 0) {
+//                resp.setUser(userResult);
+//                resp.setMessage("Successful!");
+//                resp.setStatusCode(200);
+//            }
+//        }catch (Exception e) {
+//            resp.setStatusCode(500);
+//            resp.setError(e.getMessage());
+//            throw e;
+//        }
+//        return resp;
+//    }
     public ReqRes signIn(SignInAuthReq signInAuthRequest) {
         ReqRes resp = new ReqRes();
         try {

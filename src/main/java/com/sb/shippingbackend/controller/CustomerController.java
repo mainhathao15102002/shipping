@@ -20,8 +20,13 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.getAllAddressesByCustomerId(customerId));
     }
     @GetMapping("/{customerId}/getAddress")
-    public ReqRes getAddressByCustomerIdAndAddress(@PathVariable String customerId) {
-        return customerService.getAddressByCustomerId(customerId);
+    public ReqRes getAddressByCustomerIdAndAddress(@PathVariable String customerId,@RequestParam String address) {
+        return customerService.getAddressByCustomerId(customerId, address);
+    }
+
+    @DeleteMapping("/{customerId}/deleteAddress")
+    public ReqRes deleteAddressByAddress(@PathVariable String customerId, @RequestBody AddressReq address) {
+        return customerService.deleteAddressByAddress(customerId, address.getAddress());
     }
 
     @PostMapping("/addAddress")

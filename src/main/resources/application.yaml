@@ -4,6 +4,17 @@ server:
     context-path: /shipping
 
 spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: mainhathaodev@gmail.com
+    password: ozxt lsot xsfe xcrv
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   datasource:
     url: "jdbc:mysql://localhost:3306/shipping"
     username: root

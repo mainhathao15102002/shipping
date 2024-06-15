@@ -19,9 +19,19 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
+//    @PostMapping("/signup")
+//    public ResponseEntity<ReqRes> signUp(@RequestBody SignUpAuthReq signUpRequest) {
+//        return ResponseEntity.ok(authService.signUp(signUpRequest));
+//    }
+
     @PostMapping("/signup")
-    public ResponseEntity<ReqRes> signUp(@RequestBody SignUpAuthReq signUpRequest) {
-        return ResponseEntity.ok(authService.signUp(signUpRequest));
+    public ReqRes signUp(@RequestBody SignUpAuthReq registrationRequest) {
+        return authService.signUp(registrationRequest);
+    }
+
+    @PostMapping("/verify")
+    public ReqRes verify(@RequestParam String email, @RequestParam String code) {
+        return authService.verifyAndRegister(email, code);
     }
 
     @PostMapping("/signin")
