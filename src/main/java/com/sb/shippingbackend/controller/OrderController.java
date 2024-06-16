@@ -12,34 +12,33 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin/order")
 public class OrderController {
 
     @Autowired
     private OrderService orderService;
 
-    @PostMapping("/create")
+    @PostMapping("user/create")
     public ResponseEntity<ReqRes> create(@RequestBody CreateOrderReq createRequest) {
         return ResponseEntity.ok(orderService.createOrder(createRequest));
     }
 
-    @PutMapping("/update")
+    @PutMapping("admin/update")
     public ResponseEntity<ReqRes> update(@RequestBody UpdateOrderReq updateRequest) {
         return ResponseEntity.ok(orderService.updateStatusOrder(updateRequest));
     }
 
-    @GetMapping("/{orderId}")
+    @GetMapping("adminuser/{orderId}")
     public ResponseEntity<ReqRes> findOrderById(@PathVariable String orderId) {
         return ResponseEntity.ok(orderService.findOrderByOrderId(orderId));
 
     }
 
-    @GetMapping("/all")
+    @GetMapping("admin/all")
     public ResponseEntity<List<Order>> getAllOrdersSortedByCreatedDate() {
         return ResponseEntity.ok(orderService.getAllOrder());
     }
 
-    @GetMapping("/getByCustomerId/{customerId}")
+    @GetMapping("user/getByCustomerId/{customerId}")
     public ResponseEntity<List<Order>> findOrdersByCustomerId(@PathVariable String customerId) {
         return ResponseEntity.ok(orderService.findOrdersByCustomerId(customerId));
     }
