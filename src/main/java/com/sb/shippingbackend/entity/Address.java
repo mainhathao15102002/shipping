@@ -1,12 +1,17 @@
 package com.sb.shippingbackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Entity
 @Data
+@EqualsAndHashCode
 @Table(name = "khachhang_diachi")
+@ToString(exclude = "customer")
 public class Address {
     @EmbeddedId
     private AdressId addressId;
@@ -17,10 +22,10 @@ public class Address {
     @Column(name = "tennguoigui")
     private String name;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("id")
     @JoinColumn(name = "ma", referencedColumnName = "ma")
-    @JsonIgnore
+    @JsonBackReference
     private Customer customer;
 
 }

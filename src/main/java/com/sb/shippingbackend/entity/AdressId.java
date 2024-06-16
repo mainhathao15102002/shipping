@@ -16,4 +16,11 @@ public class AdressId implements Serializable {
     @Column(name = "diachi")
     private String address;
 
+    public AdressId(String id, String address) {
+        this.id = id;
+        this.address = address;
+    }
+
+    public AdressId() {
+    }
 }

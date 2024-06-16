@@ -10,6 +10,7 @@ import com.sb.shippingbackend.repository.AddressRepository;
 import com.sb.shippingbackend.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -54,34 +55,24 @@ public class CustomerService {
     public ReqRes updateAddress(AddressReq updateRequest) {
         ReqRes resp = new ReqRes();
         try {
-            Optional<Address> optionalAddress = addressRepository.findByCustomerId(updateRequest.getCustomerId());
-
+            Optional<Address> optionalAddress = addressRepository.findByCustomerIdAndAddress(updateRequest.getCustomerId(), updateRequest.getOldAddress());
             if (optionalAddress.isPresent()) {
                 Address address = optionalAddress.get();
-
-                if (!updateRequest.getAddress().isEmpty())
-                {
+                if (!updateRequest.getAddress().isEmpty()) {
                     address.getAddressId().setAddress(updateRequest.getAddress());
                 }
-                if(!updateRequest.getName().isEmpty())
-                {
+
+                if (!updateRequest.getName().isEmpty()) {
                     address.setName(updateRequest.getName());
-                } else if (!updateRequest.getPhoneNumber().isEmpty()) {
+                }
+                if (!updateRequest.getPhoneNumber().isEmpty()) {
                     address.setPhoneNumber(updateRequest.getPhoneNumber());
                 }
-
-                Address addressResult = addressRepository.save(address);
-
-                if (addressResult != null) {
-                    resp.setAddressObject(addressResult);
-                    resp.setMessage("Successful!");
-                    resp.setStatusCode(200);
-                } else {
-                    resp.setMessage("Failed to update address!");
-                    resp.setStatusCode(500);
-                }
+                addressRepository.updateAddress(address.getCustomer().getId(), updateRequest.getOldAddress(), address.getAddressId().getAddress());
+                resp.setMessage("Address updated successfully!");
+                resp.setStatusCode(200);
             } else {
-                resp.setMessage("Address not found for the given customer!");
+                resp.setMessage("Address not found for the given customer and address!");
                 resp.setStatusCode(404);
             }
         } catch (Exception e) {

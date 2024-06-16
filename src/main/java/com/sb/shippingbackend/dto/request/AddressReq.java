@@ -12,4 +12,5 @@ public class AddressReq {
     private String address;
     private String phoneNumber;
     private String name;
+    private String oldAddress;
 }
