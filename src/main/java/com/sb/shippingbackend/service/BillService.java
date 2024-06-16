@@ -30,11 +30,22 @@ public class BillService {
         return resp;
     }
 
-    public List<Bill> getAllBills() {
+    public List<BillResponse> getAllBillsResponse() {
         List<Bill> bills = billRepository.findAll();
         return bills.stream()
                 .sorted((b1, b2) -> b2.getCreatedDate().compareTo(b1.getCreatedDate()))
+                .map(this::convertToBillResponse)
                 .collect(Collectors.toList());
+    }
+
+    private BillResponse convertToBillResponse(Bill bill) {
+        BillResponse resp = new BillResponse();
+        resp.setBillId(bill.getId());
+        resp.setOrderId(bill.getOrder().getId());
+        resp.setCreatedDate(bill.getCreatedDate());
+        resp.setTotalCost(bill.getTotalCost());
+        resp.setBillStatus(bill.getBillStatus());
+        return resp;
     }
 
     public List<BillResponse> getBillsByCustomerId(String customerId) {
