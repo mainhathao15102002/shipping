@@ -1,10 +1,8 @@
 package com.sb.shippingbackend.repository;
-
 import com.sb.shippingbackend.entity.Address;
 import com.sb.shippingbackend.entity.AdressId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-
 import java.util.List;
 import java.util.Optional;
 
