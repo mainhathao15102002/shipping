@@ -31,15 +31,15 @@ public class Customer {
     @Column(name = "sodienthoai")
     private String phoneNumber;
 
-    @OneToMany(mappedBy = "customer",fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "customer")
     @JsonManagedReference
     private List<Address> addresses = new ArrayList<>();
 
-    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Order> orderList;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.ALL)
     @JsonIgnore
     @JoinColumn(name = "mataikhoan")
     private User user;

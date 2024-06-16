@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode
 @Table(name = "vandon")
+@ToString(exclude = {"merchandiseList","bill", "customer"})
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -43,14 +45,16 @@ public class Order {
     @Column(name = "trangthai")
     private OrderStatus status = OrderStatus.PENDING;;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "ma")
+    @JsonIgnore
     private Customer customer;
 
-    @OneToOne(mappedBy = "order", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "order")
     @JsonIgnore
     private Bill bill;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Merchandise> merchandiseList;
 }

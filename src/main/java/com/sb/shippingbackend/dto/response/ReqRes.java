@@ -46,4 +46,6 @@ public class ReqRes
     private List<Merchandise> merchandiseList;
     private List<Address> addressList;
     private List<SpecialProps> specialPropsList;
+    private List<Order> orderList;
+    private String idVerification;
 }

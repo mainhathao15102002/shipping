@@ -3,6 +3,7 @@ package com.sb.shippingbackend.controller;
 import com.sb.shippingbackend.dto.request.RefreshTokenAuthReq;
 import com.sb.shippingbackend.dto.request.SignInAuthReq;
 import com.sb.shippingbackend.dto.request.SignUpAuthReq;
+import com.sb.shippingbackend.dto.request.VerificationSignUpReq;
 import com.sb.shippingbackend.dto.response.ReqRes;
 import com.sb.shippingbackend.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,8 +31,8 @@ public class AuthController {
     }
 
     @PostMapping("/verify")
-    public ReqRes verify(@RequestParam String email, @RequestParam String code) {
-        return authService.verifyAndRegister(email, code);
+    public ReqRes verify(@RequestBody VerificationSignUpReq verificationRequest) {
+        return authService.verifyAndRegister(verificationRequest);
     }
 
     @PostMapping("/signin")

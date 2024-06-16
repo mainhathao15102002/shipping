@@ -10,6 +10,9 @@ import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -43,7 +46,10 @@ public class OrderService {
             Optional<Customer> optionalCustomer = customerRepository.findById(createRequest.getCustomerId());;
             order.setReceiverName(createRequest.getReceiverName());
             order.setReceiverAddress(createRequest.getReceiverAddress());
-            order.setCreatedDate(createRequest.getCreatedDate());
+            LocalDateTime currentDateTime = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            String formattedDateTime = currentDateTime.format(formatter);
+            order.setCreatedDate(LocalDate.parse(formattedDateTime));
             order.setNote(createRequest.getNote());
             order.setDeliverMethod(createRequest.getDeliverMethod());
             order.setReceiverPhone(createRequest.getReceiverPhone());
@@ -141,8 +147,23 @@ public class OrderService {
         return orderRepository.findAllOrder();
     }
 
-    public List<Order> findOrdersByCustomerId(String customerId) {
-        return orderRepository.findByCustomerId(customerId);
+    public ReqRes findOrdersByCustomerId(String customerId) {
+        ReqRes resp = new ReqRes();
+        try {
+            List<Order> orders = orderRepository.findByCustomerId(customerId);
+            if (orders != null) {
+                resp.setOrderList(orders);
+                resp.setMessage("Order found successfully!");
+                resp.setStatusCode(200);
+            } else {
+                resp.setMessage("Order not found!");
+                resp.setStatusCode(404);
+            }
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
     }
 
 

@@ -12,7 +12,7 @@ public class EmailService {
     @Autowired
     private JavaMailSender emailSender;
 
-    public void sendVerificationCode(String to, String code) {
+    public void sendVerificationCode(String to, int code) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject("Verification Code");
@@ -20,9 +20,8 @@ public class EmailService {
         emailSender.send(message);
     }
 
-    public String generateVerificationCode() {
+    public int generateVerificationCode() {
         Random random = new Random();
-        int code = 100000 + random.nextInt(900000);
-        return String.valueOf(code);
+        return 100000 + random.nextInt(900000);
     }
 }

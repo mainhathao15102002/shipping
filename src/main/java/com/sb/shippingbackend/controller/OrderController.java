@@ -17,29 +17,30 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
-    @PostMapping("user/create")
+    @PostMapping("/user/order/create")
     public ResponseEntity<ReqRes> create(@RequestBody CreateOrderReq createRequest) {
         return ResponseEntity.ok(orderService.createOrder(createRequest));
     }
 
-    @PutMapping("admin/update")
+    @PutMapping("/admin/order/update")
     public ResponseEntity<ReqRes> update(@RequestBody UpdateOrderReq updateRequest) {
         return ResponseEntity.ok(orderService.updateStatusOrder(updateRequest));
     }
 
-    @GetMapping("adminuser/{orderId}")
+    @GetMapping("/adminuser/order/{orderId}")
     public ResponseEntity<ReqRes> findOrderById(@PathVariable String orderId) {
         return ResponseEntity.ok(orderService.findOrderByOrderId(orderId));
 
     }
 
-    @GetMapping("admin/all")
+    @GetMapping("/admin/all")
     public ResponseEntity<List<Order>> getAllOrdersSortedByCreatedDate() {
         return ResponseEntity.ok(orderService.getAllOrder());
     }
 
-    @GetMapping("user/getByCustomerId/{customerId}")
-    public ResponseEntity<List<Order>> findOrdersByCustomerId(@PathVariable String customerId) {
-        return ResponseEntity.ok(orderService.findOrdersByCustomerId(customerId));
+    @GetMapping("/adminuser/order/getByCustomerId/{customerId}")
+    public ResponseEntity<?> findOrdersByCustomerId(@PathVariable String customerId) {
+        ResponseEntity<?> response = ResponseEntity.ok(orderService.findOrdersByCustomerId(customerId));
+        return response;
     }
 }

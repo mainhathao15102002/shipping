@@ -3,14 +3,15 @@ package com.sb.shippingbackend.service;
 import com.sb.shippingbackend.dto.request.RefreshTokenAuthReq;
 import com.sb.shippingbackend.dto.request.SignInAuthReq;
 import com.sb.shippingbackend.dto.request.SignUpAuthReq;
+import com.sb.shippingbackend.dto.request.VerificationSignUpReq;
 import com.sb.shippingbackend.dto.response.ReqRes;
 import com.sb.shippingbackend.entity.*;
 import com.sb.shippingbackend.repository.*;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.SignatureException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,26 +25,6 @@ import java.util.Map;
 
 @Service
 public class AuthService {
-
-
-    private static class TempRegistration {
-        private SignUpAuthReq registrationRequest;
-        private String verificationCode;
-
-        public TempRegistration(SignUpAuthReq registrationRequest, String verificationCode) {
-            this.registrationRequest = registrationRequest;
-            this.verificationCode = verificationCode;
-        }
-
-        public SignUpAuthReq getRegistrationRequest() {
-            return registrationRequest;
-        }
-
-        public String getVerificationCode() {
-            return verificationCode;
-        }
-    }
-
 
     @Autowired
     private UserService userService;
@@ -73,9 +54,28 @@ public class AuthService {
     private TokenRepository tokenRepository;
 
     @Autowired
+    private TempRegistrationRepository tempRegistrationRepository;
+
+    @Autowired
     private EmailService emailService;
 
-    private Map<String, TempRegistration> tempRegistrations = new HashMap<>();
+//    @Autowired
+//    private CacheManager cacheManager;;
+
+//    @Cacheable(cacheNames = "tempRegistrations", key = "#email")
+//    public TempRegistration getCachedRegistrationRequest(String email) {
+//        return null;
+//    }
+
+//    @Cacheable(value = "tempRegistrations", key = "#email")
+//    public TempRegistration cacheRegistrationRequest(String email, TempRegistration tempRegistration) {
+//        return tempRegistration;
+//    }
+
+//
+//    @CacheEvict(value = "tempRegistrations", key = "#email")
+//    public void evictCachedRegistrationRequest(String email) {
+//    }
 
     @Transactional
     public ReqRes signUp(SignUpAuthReq registrationRequest) {
@@ -87,12 +87,25 @@ public class AuthService {
                 return resp;
             }
 
-            String verificationCode = emailService.generateVerificationCode();
+            int verificationCode = emailService.generateVerificationCode();
             emailService.sendVerificationCode(registrationRequest.getEmail(), verificationCode);
+            TempRegistration tempRegistration = new TempRegistration();
+            tempRegistration.setEmail(registrationRequest.getEmail());
+            tempRegistration.setRole(registrationRequest.getRole());
+            tempRegistration.setPassword(registrationRequest.getPassword());
+            if(registrationRequest.getTaxCode() == null)
+            {
+                tempRegistration.setIdCode(registrationRequest.getIdCode());
+            }
+            else {
+                tempRegistration.setTaxCode(registrationRequest.getTaxCode());
+            }
+            tempRegistration.setPhoneNumber(registrationRequest.getPhoneNumber());
+            tempRegistration.setVerificationCode(verificationCode);
+            tempRegistration.setName(registrationRequest.getName());
+            TempRegistration result = tempRegistrationRepository.save(tempRegistration);
 
-            TempRegistration tempRegistration = new TempRegistration(registrationRequest, verificationCode);
-            tempRegistrations.put(registrationRequest.getEmail(), tempRegistration);
-
+            resp.setIdVerification(result.getId());
             resp.setMessage("Verification code sent to email!");
             resp.setStatusCode(200);
         } catch (Exception e) {
@@ -104,10 +117,12 @@ public class AuthService {
     }
 
     @Transactional
-    public ReqRes verifyAndRegister(String email, String code) {
+    public ReqRes verifyAndRegister(VerificationSignUpReq verificationSignUpReq) {
         ReqRes resp = new ReqRes();
         try {
-            TempRegistration tempRegistration = tempRegistrations.get(email);
+            String id = verificationSignUpReq.getId();
+            int code = verificationSignUpReq.getCode();
+            TempRegistration tempRegistration = tempRegistrationRepository.findById(id).orElseThrow(null);
 
             if (tempRegistration == null) {
                 resp.setMessage("No registration found for this email!");
@@ -115,41 +130,41 @@ public class AuthService {
                 return resp;
             }
 
-            if (!tempRegistration.getVerificationCode().equals(code)) {
+            if (tempRegistration.getVerificationCode() != code || code == 0) {
                 resp.setMessage("Invalid verification code!");
                 resp.setStatusCode(400);
                 return resp;
             }
 
-            SignUpAuthReq registrationRequest = tempRegistration.getRegistrationRequest();
             User user = new User();
-            user.setEmail(registrationRequest.getEmail());
-            user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
-            user.setRole(registrationRequest.getRole());
+            user.setEmail(tempRegistration.getEmail());
+            user.setPassword(passwordEncoder.encode(tempRegistration.getPassword()));
+            user.setRole(tempRegistration.getRole());
             User userResult = userRepository.save(user);
 
             Customer customer = new Customer();
-            customer.setName(registrationRequest.getName());
-            customer.setPhoneNumber(registrationRequest.getPhoneNumber());
+            customer.setName(tempRegistration.getName());
+            customer.setPhoneNumber(tempRegistration.getPhoneNumber());
             customer.setUser(user);
             customerRepository.save(customer);
 
-            if (registrationRequest.getIdCode() != null) {
+            if (tempRegistration.getIdCode() != null) {
                 NormalCustomer normalCustomer = new NormalCustomer();
                 normalCustomer.setId(customer.getId());
-                normalCustomer.setIdCode(registrationRequest.getIdCode());
+                normalCustomer.setIdCode(tempRegistration.getIdCode());
                 normalRepository.save(normalCustomer);
             } else {
                 Company company = new Company();
                 company.setId(customer.getId());
-                company.setTaxCode(registrationRequest.getTaxCode());
+                company.setTaxCode(tempRegistration.getTaxCode());
                 companyRepository.save(company);
             }
 
             if (userResult.getId() > 0) {
                 resp.setMessage("Successful!");
                 resp.setStatusCode(200);
-                tempRegistrations.remove(email);
+                tempRegistrationRepository.deleteById(id);
+
             }
         } catch (Exception e) {
             resp.setStatusCode(500);
