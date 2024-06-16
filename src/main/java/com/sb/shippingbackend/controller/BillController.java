@@ -26,4 +26,6 @@ public class BillController {
     public ResponseEntity<BillResponse> searchBillById(@PathVariable String billId) {
         return ResponseEntity.ok(billService.findBillById(billId));
     }
+
+
 }
