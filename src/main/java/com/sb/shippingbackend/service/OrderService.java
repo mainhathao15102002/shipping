@@ -90,7 +90,7 @@ public class OrderService {
 
             Bill bill = new Bill();
             bill.setTotalCost(createRequest.getTotalCost());
-            bill.setCreatedDate(createRequest.getCreatedDate());
+            bill.setCreatedDate(LocalDate.parse(formattedDateTime));
             bill.setBillStatus(createRequest.getBillStatus());
             bill.setOrder(order);
             billRepository.save(bill);

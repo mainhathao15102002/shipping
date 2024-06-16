@@ -37,18 +37,18 @@ public class BillService {
                 .collect(Collectors.toList());
     }
 
-//    public List<BillResponse> getBillsByCustomerId(String customerId) {
-//        List<Bill> bills = billRepository.findAllByCustomerId(customerId);
-//        return bills.stream().map(bill -> {
-//            BillResponse resp = new BillResponse();
-//            resp.setBillId(bill.getId());
-//            resp.setOrderId(bill.getOrder().getId());
-//            resp.setCreatedDate(bill.getCreatedDate());
-//            resp.setTotalCost(bill.getTotalCost());
-//            resp.setBillStatus(bill.getBillStatus());
-//            return resp;
-//        }).collect(Collectors.toList());
-//    }
+    public List<BillResponse> getBillsByCustomerId(String customerId) {
+        List<Bill> bills = billRepository.findAllByCustomerId(customerId);
+        return bills.stream().map(bill -> {
+            BillResponse resp = new BillResponse();
+            resp.setBillId(bill.getId());
+            resp.setOrderId(bill.getOrder().getId());
+            resp.setCreatedDate(bill.getCreatedDate());
+            resp.setTotalCost(bill.getTotalCost());
+            resp.setBillStatus(bill.getBillStatus());
+            return resp;
+        }).collect(Collectors.toList());
+    }
 
     public BillResponse findBillByOrder_Id(String orderId) {
         BillResponse resp = new BillResponse();
