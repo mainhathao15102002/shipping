@@ -3,7 +3,6 @@ package com.sb.shippingbackend.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.boot.autoconfigure.amqp.RabbitConnectionDetails;
 
 import java.time.LocalDate;
 
@@ -12,20 +11,17 @@ import java.time.LocalDate;
 @Table(name = "hoadon")
 public class Bill {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "mahoadon")
     private String id;
-
-    @Column(name = "tongtien")
-    private Double totalCost;
 
     @Column(name = "ngaylap")
     private LocalDate createdDate;
 
     @Column(name = "trangthai")
-    private byte billStatus;
+    private boolean billStatus;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "mavandon")
-    private Order order;
+    @OneToOne(mappedBy = "bill")
+    @JsonIgnore
+    private TotalCost totalCost;
+
 }

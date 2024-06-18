@@ -19,7 +19,6 @@ public class CreateOrderReq {
     private String note;
     private String receiverPhone;
     private String deliverMethod;
-    private byte billStatus;
     private Double totalCost;
     private int quantity;
     private String customerId;

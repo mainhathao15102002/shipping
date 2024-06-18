@@ -1,6 +1,8 @@
 package com.sb.shippingbackend.service;
 
 import com.sb.shippingbackend.dto.request.CreateOrderReq;
+import com.sb.shippingbackend.dto.request.DirectPaymentReq;
+import com.sb.shippingbackend.dto.response.DirectPaymentRes;
 import com.sb.shippingbackend.dto.response.ReqRes;
 import com.sb.shippingbackend.dto.request.UpdateOrderReq;
 import com.sb.shippingbackend.entity.*;
@@ -37,6 +39,62 @@ public class OrderService {
 
     @Autowired
     private CustomerRepository customerRepository;
+
+    @Autowired
+    private TmpBillRepository tmpBillRepository;
+
+    @Autowired
+    private TotalCostRepository totalCostRepository;
+    @Transactional
+    public DirectPaymentRes directPayment(DirectPaymentReq directPaymentReq)
+    {
+        DirectPaymentRes resp = new DirectPaymentRes();
+        try{
+            Temp_bill tmp = tmpBillRepository.findByOrderId(directPaymentReq.getOrderId());
+            if(tmp != null)
+            {
+                Optional<Order> order = orderRepository.findById(tmp.getOrderId());
+                LocalDateTime currentDateTime = LocalDateTime.now();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                String formattedDateTime = currentDateTime.format(formatter);
+                Bill bill = new Bill();
+                bill.setId(tmp.getId());
+                bill.setCreatedDate(LocalDate.parse(formattedDateTime));
+                bill.setBillStatus(true);
+                Bill billResult = billRepository.save(bill);
+                if(!billResult.getId().isEmpty())
+                {
+                    TotalCostId totalCostId = new TotalCostId(tmp.getOrderId(), billResult.getId());
+
+                    TotalCost totalCost = new TotalCost();
+                    totalCost.setId(totalCostId);
+                    totalCost.setTotalCost(tmp.getTotalCost());
+                    order.ifPresent(totalCost::setOrder);
+                    totalCost.setBill(bill);
+                    totalCostRepository.save(totalCost);
+                    resp.setBillId(billResult.getId());
+                    DateTimeFormatter formatterRes = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+                    resp.setCreatedDate(billResult.getCreatedDate().format(formatterRes));
+                    resp.setTotalCost(totalCost.getTotalCost());
+                    resp.setBillStatus(billResult.isBillStatus()?"PAID":"INACTIVE");
+                    resp.setOrderId(billResult.getId());
+                    resp.setMessage("COMPLETED PAYMENT!");
+                    resp.setStatusCode(200);
+                }
+            }
+            else {
+                resp.setMessage("NOT FOUND");
+                resp.setStatusCode(404);
+            }
+
+        }
+        catch (Exception e)
+        {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
 
     @Transactional
     public ReqRes createOrder(CreateOrderReq createRequest) {
@@ -88,12 +146,18 @@ public class OrderService {
                 listPropOfMerchRepository.saveAll(list);
             });
 
-            Bill bill = new Bill();
+            Temp_bill bill = new Temp_bill();
             bill.setTotalCost(createRequest.getTotalCost());
             bill.setCreatedDate(LocalDate.parse(formattedDateTime));
-            bill.setBillStatus(createRequest.getBillStatus());
-            bill.setOrder(order);
-            billRepository.save(bill);
+            bill.setOrderId(order.getId());
+            tmpBillRepository.save(bill);
+//            TotalCostId totalCostId = new TotalCostId(order.getId(),bill.getId());
+//            TotalCost totalCost = new TotalCost();
+//            totalCost.setId(totalCostId);
+//            totalCost.setTotalCost(createRequest.getTotalCost());
+//            totalCost.setBill(bill);
+//            totalCost.setOrder(order);
+//            totalCostRepository.save()
             if(!orderResult.getId().isEmpty()) {
                 resp.setOrder(orderResult);
                 resp.setMerchandiseList(orderResult.getMerchandiseList());
@@ -101,7 +165,7 @@ public class OrderService {
                 resp.setStatusCode(200);
             }
             else {
-                resp.setMessage("Customer not found!");
+                resp.setMessage("NOT FOUND");
                 resp.setStatusCode(404);
             }
         } catch (Exception e) {

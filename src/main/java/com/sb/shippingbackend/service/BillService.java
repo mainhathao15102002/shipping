@@ -4,7 +4,10 @@ import com.sb.shippingbackend.dto.response.BillResponse;
 import com.sb.shippingbackend.dto.response.ReqRes;
 import com.sb.shippingbackend.dto.request.UpdateBillStatusReq;
 import com.sb.shippingbackend.entity.Bill;
+import com.sb.shippingbackend.entity.TotalCost;
 import com.sb.shippingbackend.repository.BillRepository;
+import com.sb.shippingbackend.repository.OrderRepository;
+import com.sb.shippingbackend.repository.TotalCostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,19 +19,26 @@ public class BillService {
     @Autowired
     private BillRepository billRepository;
 
+    @Autowired
+    private TotalCostRepository totalCostRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
+
     public BillResponse findBillById(String billId) {
         BillResponse resp = new BillResponse();
         Bill bill = billRepository.findById(billId).orElse(null);
         if (bill != null)
         {
             resp.setBillId(bill.getId());
-            resp.setOrderId(bill.getOrder().getId());
+            resp.setOrderId(bill.getTotalCost().getId().getOrderId());
             resp.setCreatedDate(bill.getCreatedDate());
-            resp.setTotalCost(bill.getTotalCost());
-            resp.setBillStatus(bill.getBillStatus());
+            resp.setTotalCost(bill.getTotalCost().getTotalCost());
+            resp.setBillStatus(bill.isBillStatus()?"PAID":"INACTIVE");
         }
         return resp;
     }
+
 
     public List<BillResponse> getAllBillsResponse() {
         List<Bill> bills = billRepository.findAll();
@@ -41,10 +51,9 @@ public class BillService {
     private BillResponse convertToBillResponse(Bill bill) {
         BillResponse resp = new BillResponse();
         resp.setBillId(bill.getId());
-        resp.setOrderId(bill.getOrder().getId());
+        resp.setOrderId(bill.getTotalCost().getId().getOrderId());
         resp.setCreatedDate(bill.getCreatedDate());
-        resp.setTotalCost(bill.getTotalCost());
-        resp.setBillStatus(bill.getBillStatus());
+        resp.setBillStatus(bill.isBillStatus()?"PAID":"INACTIVE");
         return resp;
     }
 
@@ -53,10 +62,9 @@ public class BillService {
         return bills.stream().map(bill -> {
             BillResponse resp = new BillResponse();
             resp.setBillId(bill.getId());
-            resp.setOrderId(bill.getOrder().getId());
+            resp.setOrderId(bill.getTotalCost().getId().getOrderId());
             resp.setCreatedDate(bill.getCreatedDate());
-            resp.setTotalCost(bill.getTotalCost());
-            resp.setBillStatus(bill.getBillStatus());
+            resp.setBillStatus(bill.isBillStatus()?"PAID":"INACTIVE");
             return resp;
         }).collect(Collectors.toList());
     }
@@ -65,10 +73,9 @@ public class BillService {
         BillResponse resp = new BillResponse();
         Bill bill = billRepository.findBillByOrder_Id(orderId);
         resp.setBillId(bill.getId());
-        resp.setOrderId(bill.getOrder().getId());
+        resp.setOrderId(bill.getTotalCost().getId().getOrderId());
         resp.setCreatedDate(bill.getCreatedDate());
-        resp.setTotalCost(bill.getTotalCost());
-        resp.setBillStatus(bill.getBillStatus());
+        resp.setBillStatus(bill.isBillStatus()?"PAID":"INACTIVE");
         return resp;
     }
 
@@ -78,13 +85,13 @@ public class BillService {
             Bill bill = billRepository.findById(updateReq.getBillId()).orElse(null);
 
             if (bill!=null) {
-                if (bill.getBillStatus() == 0) {
-                    bill.setBillStatus((byte) 1);
+                if (bill.isBillStatus()) {
+                    bill.setBillStatus(false);
                     billRepository.save(bill);
-                    resp.setMessage("SUCCESSFUL!");
+                    resp.setMessage("Deactivated!");
                     resp.setStatusCode(200);
                 } else {
-                    resp.setMessage("CANT UPDATE STATUS!");
+                    resp.setMessage("Cant Deactivated this bill!");
                     resp.setStatusCode(200);
                 }
             }

@@ -1,5 +1,6 @@
 package com.sb.shippingbackend.controller;
 
+import com.sb.shippingbackend.dto.request.DirectPaymentReq;
 import com.sb.shippingbackend.dto.response.BillResponse;
 import com.sb.shippingbackend.dto.response.ReqRes;
 import com.sb.shippingbackend.dto.request.UpdateBillStatusReq;
@@ -15,7 +16,8 @@ public class BillController {
     @Autowired
     private BillService billService;
 
-    @PostMapping("/admin/bill/updateStatus")
+
+    @PostMapping("/admin/bill/deactived")
     public ResponseEntity<ReqRes> updateStatus(@RequestBody UpdateBillStatusReq updateRequest) {
         return ResponseEntity.ok(billService.updateStatus(updateRequest));
     }

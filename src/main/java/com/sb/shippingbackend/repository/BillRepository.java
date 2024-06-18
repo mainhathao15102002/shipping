@@ -7,8 +7,9 @@ import java.util.List;
 
 
 public interface BillRepository extends JpaRepository<Bill, String> {
-    @Query("SELECT b FROM Bill b JOIN b.order o WHERE o.customer.id = :customerId")
+    @Query("SELECT b FROM Bill b JOIN b.totalCost t WHERE t.order.customer.id = :customerId")
     List<Bill> findAllByCustomerId(String customerId);
 
+    @Query("select t from TotalCost t join t.order where t.order.id = :orderId")
     Bill findBillByOrder_Id(String orderId);
 }
