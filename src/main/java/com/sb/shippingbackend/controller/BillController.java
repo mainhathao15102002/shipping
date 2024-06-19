@@ -37,7 +37,7 @@ public class BillController {
 
     @GetMapping("/admin/getAllBill")
     public ResponseEntity<?> getAllBills() {
-        return ResponseEntity.ok(billService.getAllBillsResponse());
+        return ResponseEntity.ok(billService.getAllBills());
     }
 
 }
