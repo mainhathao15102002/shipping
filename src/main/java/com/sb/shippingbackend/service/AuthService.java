@@ -59,6 +59,11 @@ public class AuthService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private PostOfficeRepository postOfficeRepository;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
 //    @Autowired
 //    private CacheManager cacheManager;;
 
@@ -93,11 +98,9 @@ public class AuthService {
             tempRegistration.setEmail(registrationRequest.getEmail());
             tempRegistration.setRole(registrationRequest.getRole());
             tempRegistration.setPassword(registrationRequest.getPassword());
-            if(registrationRequest.getTaxCode() == null)
-            {
+            if (registrationRequest.getTaxCode() == null) {
                 tempRegistration.setIdCode(registrationRequest.getIdCode());
-            }
-            else {
+            } else {
                 tempRegistration.setTaxCode(registrationRequest.getTaxCode());
             }
             tempRegistration.setPhoneNumber(registrationRequest.getPhoneNumber());
@@ -113,6 +116,14 @@ public class AuthService {
             resp.setError(e.getMessage());
             throw e;
         }
+        return resp;
+    }
+
+    @Transactional
+    public ReqRes signUpAdminAccount()
+    {
+        ReqRes resp = new ReqRes();
+
         return resp;
     }
 
@@ -142,12 +153,12 @@ public class AuthService {
             user.setRole(tempRegistration.getRole());
             User userResult = userRepository.save(user);
 
+
             Customer customer = new Customer();
             customer.setName(tempRegistration.getName());
             customer.setPhoneNumber(tempRegistration.getPhoneNumber());
             customer.setUser(user);
             customerRepository.save(customer);
-
             if (tempRegistration.getIdCode() != null) {
                 NormalCustomer normalCustomer = new NormalCustomer();
                 normalCustomer.setId(customer.getId());
@@ -175,8 +186,7 @@ public class AuthService {
     }
 
 
-
-//
+    //
 //    @Transactional
 //    public ReqRes signUp(SignUpAuthReq registrationRequest) {
 //        ReqRes resp = new ReqRes();
@@ -226,7 +236,7 @@ public class AuthService {
     public ReqRes signIn(SignInAuthReq signInAuthRequest) {
         ReqRes resp = new ReqRes();
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(signInAuthRequest.getEmail(),signInAuthRequest.getPassword()));
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(signInAuthRequest.getEmail(), signInAuthRequest.getPassword()));
             var user = userRepository.findByEmail(signInAuthRequest.getEmail()).orElseThrow();
             revokeToken(user);
             var jwt = jwtUtils.generateToken(user);
@@ -244,18 +254,18 @@ public class AuthService {
             resp.setRole(user.getRole());
             resp.setExpirationTime("24Hr");
             resp.setMessage("Successful!");
-        }catch (Exception e) {
+        } catch (Exception e) {
             resp.setStatusCode(500);
             resp.setError(e.getMessage());
         }
         return resp;
     }
+
     public ReqRes refreshToken(RefreshTokenAuthReq refreshRequest) {
         ReqRes resp = new ReqRes();
         String userEmail = jwtUtils.extractUsername(refreshRequest.getToken());
         User users = userRepository.findByEmail(userEmail).orElseThrow();
-        if (jwtUtils.isTokenValid(refreshRequest.getToken(), users))
-        {
+        if (jwtUtils.isTokenValid(refreshRequest.getToken(), users)) {
             var jwt = jwtUtils.generateToken(users);
             resp.setStatusCode(200);
             resp.setToken(jwt);
@@ -270,8 +280,7 @@ public class AuthService {
 
     private void revokeToken(User user) {
         List<Token> validTokenListByUser = tokenRepository.findAllTokenByUser(user.getId());
-        if(!validTokenListByUser.isEmpty())
-        {
+        if (!validTokenListByUser.isEmpty()) {
             validTokenListByUser.forEach(t ->
                     t.setLoggedOut(true));
         }
@@ -283,15 +292,13 @@ public class AuthService {
     }
 
     public Boolean checkTokenIsValid(String token) {
-        String userEmail =  jwtUtils.extractUsername(token);
+        String userEmail = jwtUtils.extractUsername(token);
         UserDetails userDetails = userService.loadUserByUsername(userEmail);
-        if (userDetails == null)
-        {
+        if (userDetails == null) {
             return false;
         }
-        return  jwtUtils.isTokenValid(token, userDetails);
+        return jwtUtils.isTokenValid(token, userDetails);
     }
-
 
 
 }
