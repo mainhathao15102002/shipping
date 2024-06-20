@@ -1,8 +1,7 @@
 package com.sb.shippingbackend.controller;
 
-import com.sb.shippingbackend.dto.request.CreateOrderReq;
-import com.sb.shippingbackend.dto.response.ReqRes;
-import com.sb.shippingbackend.repository.PostOfficeRepository;
+
+import com.sb.shippingbackend.dto.request.PostOfficeReq;
 import com.sb.shippingbackend.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,5 +16,15 @@ public class PostOfficeController {
     @GetMapping("/getAll")
     public ResponseEntity<?> getAll() {
         return ResponseEntity.ok(postService.getAllOfficeInfo());
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<?> create(@RequestBody PostOfficeReq postOfficeReq) {
+        return ResponseEntity.ok(postService.createPostOffice(postOfficeReq));
+    }
+
+    @PostMapping("/update")
+    public ResponseEntity<?> update(@RequestBody PostOfficeReq postOfficeReq) {
+        return ResponseEntity.ok(postService.updatePostOffice(postOfficeReq));
     }
 }

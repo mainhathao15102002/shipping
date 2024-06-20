@@ -1,5 +1,6 @@
 package com.sb.shippingbackend.service;
 
+import com.sb.shippingbackend.dto.request.PostOfficeReq;
 import com.sb.shippingbackend.dto.response.PostOfficeRes;
 import com.sb.shippingbackend.dto.response.ReqRes;
 import com.sb.shippingbackend.entity.PostOffice;
@@ -15,8 +16,7 @@ public class PostService {
     @Autowired
     private PostOfficeRepository postOfficeRepository;
 
-    public PostOfficeRes getAllOfficeInfo()
-    {
+    public PostOfficeRes getAllOfficeInfo() {
         PostOfficeRes resp = new PostOfficeRes();
         try {
             List<PostOffice> postOfficeList = postOfficeRepository.findAll();
@@ -32,5 +32,49 @@ public class PostService {
             resp.setError(e.getMessage());
         }
         return resp;
+    }
+
+    public ReqRes updatePostOffice(PostOfficeReq postOfficeReq) {
+        ReqRes resp = new ReqRes();
+        try {
+            PostOffice postOffice = postOfficeRepository.findById(postOfficeReq.getId()).orElseThrow(null);
+            if (postOffice != null) {
+                postOffice.setAddress(postOfficeReq.getAddress());
+                postOffice.setName(postOfficeReq.getName());
+                postOffice.setStatus(postOfficeReq.getStatus());
+                postOffice.setPhoneNumber(postOfficeReq.getPhoneNumber());
+                postOfficeRepository.save(postOffice);
+                resp.setMessage("SUCCESSFUL!");
+                resp.setStatusCode(200);
+            }
+            else {
+                resp.setMessage("NOT FOUND!");
+                resp.setStatusCode(200);
+            }
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+
+    }
+
+    public ReqRes createPostOffice(PostOfficeReq postOfficeReq) {
+        ReqRes resp = new ReqRes();
+        try {
+            PostOffice postOffice = new PostOffice();
+            postOffice.setAddress(postOfficeReq.getAddress());
+            postOffice.setName(postOfficeReq.getName());
+            postOffice.setStatus(postOfficeReq.getStatus());
+            postOffice.setPhoneNumber(postOfficeReq.getPhoneNumber());
+            postOfficeRepository.save(postOffice);
+            resp.setMessage("SUCCESSFUL!");
+            resp.setStatusCode(200);
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+
     }
 }

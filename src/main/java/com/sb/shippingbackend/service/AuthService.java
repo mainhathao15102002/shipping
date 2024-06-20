@@ -153,7 +153,6 @@ public class AuthService {
             user.setRole(tempRegistration.getRole());
             User userResult = userRepository.save(user);
 
-
             Customer customer = new Customer();
             customer.setName(tempRegistration.getName());
             customer.setPhoneNumber(tempRegistration.getPhoneNumber());
@@ -185,54 +184,6 @@ public class AuthService {
         return resp;
     }
 
-
-    //
-//    @Transactional
-//    public ReqRes signUp(SignUpAuthReq registrationRequest) {
-//        ReqRes resp = new ReqRes();
-//        try {
-//            if (userRepository.existsByEmail(registrationRequest.getEmail())) {
-//                resp.setMessage("Email is exists!");
-//                resp.setStatusCode(400);
-//                return resp;
-//            }
-//            User user = new User();
-//            System.out.println(user.getId());
-//            user.setEmail(registrationRequest.getEmail());
-//            user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
-//            user.setRole(registrationRequest.getRole());
-//            User userResult = userRepository.save(user);
-//
-//            Customer customer = new Customer();
-//            customer.setName(registrationRequest.getName());
-//            customer.setPhoneNumber(registrationRequest.getPhoneNumber());
-//            customer.setUser(user);
-//            customerRepository.save(customer);
-//            if(registrationRequest.getIdCode() != null)
-//            {
-//                NormalCustomer normalCustomer = new NormalCustomer();
-//                normalCustomer.setId(customer.getId());
-//                normalCustomer.setIdCode(registrationRequest.getIdCode());
-//                normalRepository.save(normalCustomer);
-//            }
-//            else {
-//                Company company = new Company();
-//                company.setId(customer.getId());
-//                company.setTaxCode(registrationRequest.getTaxCode());
-//                companyRepository.save(company);
-//            }
-//            if(userResult.getId() > 0) {
-//                resp.setUser(userResult);
-//                resp.setMessage("Successful!");
-//                resp.setStatusCode(200);
-//            }
-//        }catch (Exception e) {
-//            resp.setStatusCode(500);
-//            resp.setError(e.getMessage());
-//            throw e;
-//        }
-//        return resp;
-//    }
     public ReqRes signIn(SignInAuthReq signInAuthRequest) {
         ReqRes resp = new ReqRes();
         try {
@@ -245,7 +196,6 @@ public class AuthService {
             token.setLoggedOut(false);
             token.setToken(jwt);
             token.setUser(user);
-
             tokenRepository.save(token);
             resp.setStatusCode(200);
             resp.setToken(jwt);
