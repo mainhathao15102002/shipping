@@ -39,10 +39,20 @@ public class PostService {
         try {
             PostOffice postOffice = postOfficeRepository.findById(postOfficeReq.getId()).orElseThrow(null);
             if (postOffice != null) {
-                postOffice.setAddress(postOfficeReq.getAddress());
-                postOffice.setName(postOfficeReq.getName());
-                postOffice.setStatus(postOfficeReq.getStatus());
-                postOffice.setPhoneNumber(postOfficeReq.getPhoneNumber());
+                if(postOffice.getName()!=null)
+                {
+                    postOffice.setName(postOfficeReq.getName());
+
+                }
+                if(postOfficeReq.getAddress()!=null)
+                {
+                    postOffice.setAddress(postOfficeReq.getAddress());
+                }
+                if(postOfficeReq.getPhoneNumber()!=null)
+                {
+                    postOffice.setPhoneNumber(postOfficeReq.getPhoneNumber());
+
+                }
                 postOfficeRepository.save(postOffice);
                 resp.setMessage("SUCCESSFUL!");
                 resp.setStatusCode(200);
