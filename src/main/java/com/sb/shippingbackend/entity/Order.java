@@ -57,4 +57,8 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Merchandise> merchandiseList;
+
+    @ManyToOne
+    @JoinColumn(name = "maphieunb")
+    private InternalShippingDetail internalShippingDetail;
 }

@@ -11,4 +11,7 @@ public interface OrderRepository extends JpaRepository<Order, String> {
 
     @Query("SELECT o FROM  Order  o where o.customer.id = :customerId order by o.createdDate DESC")
     List<Order> findByCustomerId(String customerId);
+
+    @Query("SELECT o FROM  Order  o where o.internalShippingDetail.internalId = :detailId")
+    List<Order> findByInternalShippingDetail(String detailId);
 }

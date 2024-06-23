@@ -11,13 +11,13 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "buucuc")
-@ToString(exclude = {"employeeList"})
+@ToString(exclude = {"employeeList","internalShippingList"})
 public class PostOffice {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "mabuucuc")
-    private String id;
+    private Integer id;
 
     @Column(name ="tenbuucuc")
     private String name;
@@ -34,4 +34,8 @@ public class PostOffice {
     @OneToMany(mappedBy = "postOffice", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Employee> employeeList;
+
+
+    @OneToMany(mappedBy = "postOffice")
+    private List<InternalShippingDetail> internalShippingList;
 }
