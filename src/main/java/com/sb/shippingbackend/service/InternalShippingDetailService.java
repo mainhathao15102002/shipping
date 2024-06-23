@@ -2,10 +2,7 @@ package com.sb.shippingbackend.service;
 
 import com.sb.shippingbackend.dto.request.InternalShippingReq;
 import com.sb.shippingbackend.dto.response.InternalShippingRes;
-import com.sb.shippingbackend.entity.InternalShipping;
-import com.sb.shippingbackend.entity.InternalShippingDetail;
-import com.sb.shippingbackend.entity.Order;
-import com.sb.shippingbackend.entity.PostOffice;
+import com.sb.shippingbackend.entity.*;
 import com.sb.shippingbackend.repository.InternalShippingDetailRepository;
 import com.sb.shippingbackend.repository.InternalShippingRepository;
 import com.sb.shippingbackend.repository.OrderRepository;
@@ -67,8 +64,18 @@ public class InternalShippingDetailService {
             List<Order> orders = new ArrayList<>();
             for (String orderId : listOrderId) {
                 Order order = orderRepository.findById(orderId).orElseThrow(null);
-                order.setInternalShippingDetail(internalResult);
-                orders.add(order);
+                if(order.getInternalShippingDetail()==null) {
+                    order.setInternalShippingDetail(internalResult);
+                    order.setStatus(OrderStatus.PREPARING);
+                    orders.add(order);
+
+                }
+                else {
+                    resp.setMessage("Oder "+ order.getId() + " has been in another one!");
+                    resp.setStatusCode(200);
+                    return resp;
+                }
+
             }
             orderRepository.saveAll(orders);
             resp.setMessage("SUCCESSFUL!");
@@ -90,6 +97,7 @@ public class InternalShippingDetailService {
             List<Order> existingOrders = orderRepository.findByInternalShippingDetail(internalShippingReq.getDetailId());
             for (Order order : existingOrders) {
                 order.setInternalShippingDetail(null);
+                order.setStatus(OrderStatus.CONFIRMED);
             }
             orderRepository.saveAll(existingOrders);
             InternalShipping internalShipping = internalShippingDetail.getInternalShipping();
@@ -112,12 +120,26 @@ public class InternalShippingDetailService {
                 Order order = orderRepository.findById(orderId)
                         .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
                 order.setInternalShippingDetail(internalShippingDetail);
+                order.setStatus(OrderStatus.PREPARING);
                 orders.add(order);
             }
-
             orderRepository.saveAll(orders);
             internalShippingDetailRepository.save(internalShippingDetail);
             resp.setMessage("UPDATE SUCCESSFUL!");
+            resp.setStatusCode(200);
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
+    @Transactional(readOnly = true)
+    public InternalShippingRes getAllByPostOfficeId(Integer postOfficeId) {
+        InternalShippingRes resp = new InternalShippingRes();
+        try {
+            List<InternalShipping> internalShippingDetails = internalShippingDetailRepository.findByPostOfficeId(postOfficeId);
+            resp.setInternalShippingList(internalShippingDetails);
+            resp.setMessage("SUCCESSFUL!");
             resp.setStatusCode(200);
         } catch (Exception e) {
             resp.setStatusCode(500);

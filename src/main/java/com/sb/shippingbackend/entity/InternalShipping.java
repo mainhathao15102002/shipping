@@ -1,7 +1,9 @@
 package com.sb.shippingbackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -9,6 +11,7 @@ import java.util.Date;
 @Entity
 @Data
 @Table(name = "phieuvanchuyennb")
+@ToString(exclude = {"internalShippingDetail","postOfficeRecieve","postOfficeSend"})
 public class InternalShipping {
     @Id
     @Column(name = "maphieunb")
@@ -23,19 +26,22 @@ public class InternalShipping {
 
     @ManyToOne
     @JoinColumn(name = "mabuucucgui", referencedColumnName = "mabuucuc")
+    @JsonIgnore
     private PostOffice postOfficeSend;
 
     @ManyToOne
     @JoinColumn(name = "mabuucucnhan", referencedColumnName = "mabuucuc")
+    @JsonIgnore
     private PostOffice postOfficeRecieve;
 
     @Column(name = "biensoxe")
     private String licensePlates;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "trangthai")
-    private boolean status;
-
+    private InternalShippingStatus status = InternalShippingStatus.PENDING;
 
     @OneToOne(mappedBy = "internalShipping")
+    @JsonIgnore
     private InternalShippingDetail internalShippingDetail;
 }

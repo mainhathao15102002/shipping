@@ -1,13 +1,9 @@
 package com.sb.shippingbackend.entity;
 
-public enum OrderStatus {
+public enum InternalShippingStatus {
     CANCELLED,
     PENDING,
     CONFIRMED,
-    PREPARING,
     TRANSPORTING,
-    STOCKED,
-    WAITING,
-    SHIPPING,
     COMPLETED,
 }

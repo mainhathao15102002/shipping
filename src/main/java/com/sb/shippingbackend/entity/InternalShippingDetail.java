@@ -22,7 +22,6 @@ public class InternalShippingDetail {
     @JoinColumn(name = "maphieunb")
     private InternalShipping internalShipping;
 
-
     @Column(name = "ngaygionhapkho")
     private Date warehouseDate;
 
