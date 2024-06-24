@@ -13,7 +13,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode
 @Table(name = "vandon")
-@ToString(exclude = {"merchandiseList","bill", "customer"})
+@ToString(exclude = {"merchandiseList","bill", "customer","internalShippingDetail"})
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -60,5 +60,7 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "maphieunb")
+
+    @JsonIgnore
     private InternalShippingDetail internalShippingDetail;
 }
