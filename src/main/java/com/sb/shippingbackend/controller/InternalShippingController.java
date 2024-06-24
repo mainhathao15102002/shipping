@@ -27,4 +27,9 @@ public class InternalShippingController {
     public ResponseEntity<?> findByPostOfficeId(@PathVariable Integer postOfficeId) {
         return ResponseEntity.ok(internalShippingDetailService.getAllByPostOfficeId(postOfficeId));
     }
+
+    @PutMapping("/start-transporting/{internalShippingId}")
+    public ResponseEntity<?> startTransporting(@PathVariable String internalShippingId) {
+        return ResponseEntity.ok(internalShippingDetailService.startTransporting(internalShippingId));
+    }
 }

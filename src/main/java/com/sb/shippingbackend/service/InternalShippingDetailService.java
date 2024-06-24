@@ -147,6 +147,29 @@ public class InternalShippingDetailService {
         }
         return resp;
     }
+    @Transactional
+    public InternalShippingRes startTransporting(String internalShippingId) {
+        InternalShippingRes resp = new InternalShippingRes();
+        try {
+            InternalShipping internalShipping = internalShippingRepository.findById(internalShippingId)
+                    .orElseThrow(() -> new IllegalArgumentException("InternalShipping not found: " + internalShippingId));
+            internalShipping.setStatus(InternalShippingStatus.TRANSPORTING);
 
+            List<Order> orders = orderRepository.findByInternalShippingDetail(internalShippingId);
+            for (Order order : orders) {
+                order.setStatus(OrderStatus.TRANSPORTING);
+            }
+
+            internalShippingRepository.save(internalShipping);
+            orderRepository.saveAll(orders);
+
+            resp.setMessage("Transporting started successfully!");
+            resp.setStatusCode(200);
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
 
 }

@@ -25,7 +25,7 @@ public class OrderController {
     }
 
     @PostMapping("/admin/order/directPayment")
-    public ResponseEntity<?> create(@RequestBody DirectPaymentReq directPaymentReq) {
+    public ResponseEntity<?> directPayment(@RequestBody DirectPaymentReq directPaymentReq) {
         return ResponseEntity.ok(orderService.directPayment(directPaymentReq));
     }
 
