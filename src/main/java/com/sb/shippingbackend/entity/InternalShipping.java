@@ -11,7 +11,7 @@ import java.util.Date;
 @Entity
 @Data
 @Table(name = "phieuvanchuyennb")
-@ToString(exclude = {"internalShippingDetail","postOfficeRecieve","postOfficeSend"})
+@ToString(exclude = {"postOfficeRecieve","postOfficeSend"})
 public class InternalShipping {
     @Id
     @Column(name = "maphieunb")
@@ -42,6 +42,5 @@ public class InternalShipping {
     private InternalShippingStatus status = InternalShippingStatus.PENDING;
 
     @OneToOne(mappedBy = "internalShipping")
-    @JsonIgnore
     private InternalShippingDetail internalShippingDetail;
 }

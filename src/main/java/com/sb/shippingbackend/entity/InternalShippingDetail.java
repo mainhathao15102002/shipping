@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
 import java.util.Date;
 import java.util.List;
@@ -11,14 +12,17 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "bangchitietvanchuyennb")
+@ToString(exclude = {"internalShipping","postOffice"})
 public class InternalShippingDetail {
 
     @Id
     @Column(name = "maphieunb")
-    private String internalId;  // This will act as both primary key and foreign key
+    @JsonIgnore
+    private String internalId;
 
     @OneToOne
     @MapsId
+    @JsonIgnore
     @JoinColumn(name = "maphieunb")
     private InternalShipping internalShipping;
 
@@ -27,10 +31,10 @@ public class InternalShippingDetail {
 
     @ManyToOne
     @JoinColumn(name = "mabuucuc", nullable = false)
+    @JsonIgnore
     private PostOffice postOffice;
 
     @OneToMany(mappedBy = "internalShippingDetail", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
     private List<Order> orderList;
 
 }
