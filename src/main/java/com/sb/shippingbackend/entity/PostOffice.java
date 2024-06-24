@@ -37,5 +37,6 @@ public class PostOffice {
 
 
     @OneToMany(mappedBy = "postOffice")
+    @JsonIgnore
     private List<InternalShippingDetail> internalShippingList;
 }
