@@ -15,4 +15,6 @@ public class InternalShippingRes {
     private String error;
     private String message;
     private List<InternalShipping> internalShippingList;
+    private String postOfficeSend;
+    private String postOfficeRecieve;
 }

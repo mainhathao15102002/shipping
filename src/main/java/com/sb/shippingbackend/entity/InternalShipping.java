@@ -11,7 +11,7 @@ import java.util.Date;
 @Entity
 @Data
 @Table(name = "phieuvanchuyennb")
-@ToString(exclude = {"postOfficeRecieve","postOfficeSend"})
+@ToString(exclude = {"postOfficeRecieve","postOfficeSend","internalShippingDetail"})
 public class InternalShipping {
     @Id
     @Column(name = "maphieunb")
@@ -26,12 +26,10 @@ public class InternalShipping {
 
     @ManyToOne
     @JoinColumn(name = "mabuucucgui", referencedColumnName = "mabuucuc")
-    @JsonIgnore
     private PostOffice postOfficeSend;
 
     @ManyToOne
     @JoinColumn(name = "mabuucucnhan", referencedColumnName = "mabuucuc")
-    @JsonIgnore
     private PostOffice postOfficeRecieve;
 
     @Column(name = "biensoxe")
@@ -42,5 +40,6 @@ public class InternalShipping {
     private InternalShippingStatus status = InternalShippingStatus.PENDING;
 
     @OneToOne(mappedBy = "internalShipping")
+    @JsonIgnore
     private InternalShippingDetail internalShippingDetail;
 }

@@ -62,4 +62,9 @@ public class Order {
     @JoinColumn(name = "maphieunb")
     @JsonIgnore
     private InternalShippingDetail internalShippingDetail;
+
+    @ManyToOne
+    @JoinColumn(name = "maphieukhach")
+    @JsonIgnore
+    private CustomerShippingDetail customerShippingDetail;
 }

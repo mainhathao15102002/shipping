@@ -12,7 +12,7 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "bangchitietvanchuyennb")
-@ToString(exclude = {"internalShipping","postOffice"})
+@ToString(exclude = {"postOffice"})
 public class InternalShippingDetail {
 
     @Id
@@ -22,7 +22,6 @@ public class InternalShippingDetail {
 
     @OneToOne
     @MapsId
-    @JsonIgnore
     @JoinColumn(name = "maphieunb")
     private InternalShipping internalShipping;
 
