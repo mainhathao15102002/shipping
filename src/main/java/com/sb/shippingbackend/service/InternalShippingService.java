@@ -11,14 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class InternalShippingDetailService {
+public class InternalShippingService {
 
     @Autowired
     private InternalShippingRepository internalShippingRepository;
@@ -164,6 +162,32 @@ public class InternalShippingDetailService {
             orderRepository.saveAll(orders);
 
             resp.setMessage("Transporting started successfully!");
+            resp.setStatusCode(200);
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
+
+    @Transactional
+    public InternalShippingRes cancelShipping(String internalShippingId) {
+        InternalShippingRes resp = new InternalShippingRes();
+        try {
+            InternalShipping internalShipping = internalShippingRepository.findById(internalShippingId)
+                    .orElseThrow(() -> new IllegalArgumentException("InternalShipping not found: " + internalShippingId));
+            internalShipping.setStatus(InternalShippingStatus.CANCELLED);
+
+            List<Order> orders = orderRepository.findByInternalShippingDetail(internalShippingId);
+            for (Order order : orders) {
+                order.setStatus(OrderStatus.PENDING);
+                order.setInternalShippingDetail(null);
+            }
+
+            internalShippingRepository.save(internalShipping);
+            orderRepository.saveAll(orders);
+
+            resp.setMessage("Shipping canceled successfully!");
             resp.setStatusCode(200);
         } catch (Exception e) {
             resp.setStatusCode(500);

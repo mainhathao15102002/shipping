@@ -8,7 +8,7 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PostOfficeReq {
-    private String id;
+    private Integer id;
     private String name;
     private int status;
     private String phoneNumber;

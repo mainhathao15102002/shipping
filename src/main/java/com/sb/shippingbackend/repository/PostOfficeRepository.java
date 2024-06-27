@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface PostOfficeRepository extends JpaRepository<PostOffice, String> {
+public interface PostOfficeRepository extends JpaRepository<PostOffice, Integer> {
 //
 //    @Query("SELECT p FROM PostOffice p WHERE " +
 //            "(:address IS NULL OR LOWER(p.address) LIKE LOWER(CONCAT('%', :address, '%'))) AND " +
