@@ -43,6 +43,7 @@ public class CustomerShippingService {
             //them tuyen duong
 
             //
+            customerShipping.setStatus(CustomerShippingStatus.PENDING);
             customerShipping.setLicensePlate(customerShippingReq.getLicensePlates());
             CustomerShipping customerShippingResult = customerShippingRepository.save(customerShipping);
 
