@@ -14,7 +14,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CustomerShippingReq {
     private String id;
-    private Date estimatedDate;
+    private LocalDate estimatedDate;
     private String licensePlates;
     private List<String> orderIdList;
     private Integer postOfficeId;

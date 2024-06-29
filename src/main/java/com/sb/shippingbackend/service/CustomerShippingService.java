@@ -38,11 +38,9 @@ public class CustomerShippingService {
         try {
             CustomerShipping customerShipping = new CustomerShipping();
             LocalDateTime now = LocalDateTime.now();
-//            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             customerShipping.setCreatedDate(now.toLocalDate());
             customerShipping.setEstimatedDate(LocalDate.from(now.plusDays(3)));
             //them tuyen duong
-
 
             //
             customerShipping.setLicensePlate(customerShippingReq.getLicensePlates());
@@ -60,7 +58,7 @@ public class CustomerShippingService {
             List<Order> orders = new ArrayList<>();
             for (String orderId : listOrderId) {
                 Order order = orderRepository.findById(orderId).orElseThrow(null);
-                if(order.getInternalShippingDetail()==null) {
+                if(order.getCustomerShippingDetail()==null) {
                     order.setCustomerShippingDetail(customerShippingDetailResult);
                     order.setStatus(OrderStatus.WAITING);
                     orders.add(order);
@@ -70,10 +68,77 @@ public class CustomerShippingService {
                     resp.setStatusCode(200);
                     return resp;
                 }
-
             }
             orderRepository.saveAll(orders);
             resp.setMessage("SUCCESSFUL!");
+            resp.setStatusCode(200);
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
+    @Transactional
+    public CustomerShippingRes update(CustomerShippingReq customerShippingReq) {
+        CustomerShippingRes resp = new CustomerShippingRes();
+        try {
+            CustomerShippingDetail customerShippingDetail = customerShippingDetailRepository.findById(customerShippingReq.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("InternalShippingDetail not found: " + customerShippingReq.getId()));
+
+            List<Order> existingOrders = orderRepository.findByCustomerShippingDetail(customerShippingReq.getId());
+            for (Order order : existingOrders) {
+                order.setCustomerShippingDetail(null);
+                order.setStatus(OrderStatus.STOCKED);
+            }
+            orderRepository.saveAll(existingOrders);
+            CustomerShipping customerShipping = customerShippingDetail.getCustomerShipping();
+            if(customerShippingReq.getEstimatedDate()!=null)
+            {
+                customerShipping.setEstimatedDate(customerShippingReq.getEstimatedDate());
+            }
+            customerShipping.setLicensePlate(customerShippingReq.getLicensePlates());
+
+            customerShippingRepository.save(customerShipping);
+            PostOffice postOffice = postOfficeRepository.findById(customerShippingReq.getPostOfficeId()).orElseThrow(null);
+            customerShippingDetail.setPostOffice(postOffice);
+            List<String> listOrderId = customerShippingReq.getOrderIdList();
+            List<Order> orders = new ArrayList<>();
+            for (String orderId : listOrderId) {
+                Order order = orderRepository.findById(orderId)
+                        .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+                order.setCustomerShippingDetail(customerShippingDetail);
+                order.setStatus(OrderStatus.WAITING);
+                orders.add(order);
+            }
+            orderRepository.saveAll(orders);
+            customerShippingDetailRepository.save(customerShippingDetail);
+            resp.setMessage("UPDATE SUCCESSFUL!");
+            resp.setStatusCode(200);
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
+
+    @Transactional
+    public CustomerShippingRes cancelShipping(String customerShippingId) {
+        CustomerShippingRes resp = new CustomerShippingRes();
+        try {
+            CustomerShipping customerShipping = customerShippingRepository.findById(customerShippingId)
+                    .orElseThrow(() -> new IllegalArgumentException("CustomerShipping not found: " + customerShippingId));
+            customerShipping.setStatus(CustomerShippingStatus.CANCELED);
+
+            List<Order> orders = orderRepository.findByCustomerShippingDetail(customerShippingId);
+            for (Order order : orders) {
+                order.setStatus(OrderStatus.STOCKED);
+                order.setCustomerShippingDetail(null);
+            }
+
+            customerShippingRepository.save(customerShipping);
+            orderRepository.saveAll(orders);
+
+            resp.setMessage("Shipping canceled successfully!");
             resp.setStatusCode(200);
         } catch (Exception e) {
             resp.setStatusCode(500);
