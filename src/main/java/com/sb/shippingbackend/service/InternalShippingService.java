@@ -180,7 +180,7 @@ public class InternalShippingService {
 
             List<Order> orders = orderRepository.findByInternalShippingDetail(internalShippingId);
             for (Order order : orders) {
-                order.setStatus(OrderStatus.PENDING);
+                order.setStatus(OrderStatus.CONFIRMED);
                 order.setInternalShippingDetail(null);
             }
 
