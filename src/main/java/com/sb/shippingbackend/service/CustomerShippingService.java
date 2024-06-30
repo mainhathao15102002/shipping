@@ -49,28 +49,24 @@ public class CustomerShippingService {
 
             CustomerShippingDetail customerShippingDetail = new CustomerShippingDetail();
             PostOffice postOffice = postOfficeRepository.findById(customerShippingReq.getPostOfficeId()).orElseThrow(null);
-            if(postOffice != null) {
+            if (postOffice != null) {
                 customerShippingDetail.setPostOffice(postOffice);
             }
             customerShippingDetail.setCustomerShipping(customerShippingResult);
             CustomerShippingDetail customerShippingDetailResult = customerShippingDetailRepository.save(customerShippingDetail);
 
-            List<String> listOrderId = customerShippingReq.getOrderIdList();
-            List<Order> orders = new ArrayList<>();
-            for (String orderId : listOrderId) {
-                Order order = orderRepository.findById(orderId).orElseThrow(null);
-                if(order.getCustomerShippingDetail()==null) {
-                    order.setCustomerShippingDetail(customerShippingDetailResult);
-                    order.setStatus(OrderStatus.WAITING);
-                    orders.add(order);
-                }
-                else {
-                    resp.setMessage("Oder "+ order.getId() + " has been in another one!");
-                    resp.setStatusCode(200);
-                    return resp;
-                }
+            String orderId = customerShippingReq.getOrderId();
+
+            Order order = orderRepository.findById(orderId).orElseThrow(null);
+            if (order.getCustomerShippingDetail() == null) {
+                order.setCustomerShippingDetail(customerShippingDetailResult);
+                order.setStatus(OrderStatus.WAITING);
+            } else {
+                resp.setMessage("Oder " + order.getId() + " has been in another one!");
+                resp.setStatusCode(200);
+                return resp;
             }
-            orderRepository.saveAll(orders);
+            orderRepository.save(order);
             resp.setMessage("SUCCESSFUL!");
             resp.setStatusCode(200);
         } catch (Exception e) {
@@ -79,6 +75,7 @@ public class CustomerShippingService {
         }
         return resp;
     }
+
     @Transactional
     public CustomerShippingRes update(CustomerShippingReq customerShippingReq) {
         CustomerShippingRes resp = new CustomerShippingRes();
@@ -93,8 +90,7 @@ public class CustomerShippingService {
             }
             orderRepository.saveAll(existingOrders);
             CustomerShipping customerShipping = customerShippingDetail.getCustomerShipping();
-            if(customerShippingReq.getEstimatedDate()!=null)
-            {
+            if (customerShippingReq.getEstimatedDate() != null) {
                 customerShipping.setEstimatedDate(customerShippingReq.getEstimatedDate());
             }
             customerShipping.setLicensePlate(customerShippingReq.getLicensePlates());
@@ -102,16 +98,13 @@ public class CustomerShippingService {
             customerShippingRepository.save(customerShipping);
             PostOffice postOffice = postOfficeRepository.findById(customerShippingReq.getPostOfficeId()).orElseThrow(null);
             customerShippingDetail.setPostOffice(postOffice);
-            List<String> listOrderId = customerShippingReq.getOrderIdList();
-            List<Order> orders = new ArrayList<>();
-            for (String orderId : listOrderId) {
-                Order order = orderRepository.findById(orderId)
-                        .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
-                order.setCustomerShippingDetail(customerShippingDetail);
-                order.setStatus(OrderStatus.WAITING);
-                orders.add(order);
-            }
-            orderRepository.saveAll(orders);
+            String orderId = customerShippingReq.getOrderId();
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+            order.setCustomerShippingDetail(customerShippingDetail);
+            order.setStatus(OrderStatus.WAITING);
+
+            orderRepository.save(order);
             customerShippingDetailRepository.save(customerShippingDetail);
             resp.setMessage("UPDATE SUCCESSFUL!");
             resp.setStatusCode(200);
