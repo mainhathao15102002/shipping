@@ -25,4 +25,10 @@ public class CustomerShippingController {
     public ResponseEntity<?> cancelShipping(@PathVariable String customerShippingId) {
         return ResponseEntity.ok(customerShippingService.cancelShipping(customerShippingId));
     }
+
+
+    @GetMapping("/{postOfficeId}")
+    public ResponseEntity<?> findByPostOfficeId(@PathVariable Integer postOfficeId) {
+        return ResponseEntity.ok(customerShippingService.getAllByPostOfficeId(postOfficeId));
+    }
 }

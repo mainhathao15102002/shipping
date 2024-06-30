@@ -5,10 +5,7 @@ import com.sb.shippingbackend.dto.request.InternalShippingReq;
 import com.sb.shippingbackend.dto.response.CustomerShippingRes;
 import com.sb.shippingbackend.dto.response.InternalShippingRes;
 import com.sb.shippingbackend.entity.*;
-import com.sb.shippingbackend.repository.CustomerShippingDetailRepository;
-import com.sb.shippingbackend.repository.CustomerShippingRepository;
-import com.sb.shippingbackend.repository.OrderRepository;
-import com.sb.shippingbackend.repository.PostOfficeRepository;
+import com.sb.shippingbackend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +28,8 @@ public class CustomerShippingService {
 
     @Autowired
     private OrderRepository orderRepository;
+    @Autowired
+    private CustomerRepository customerRepository;
 
     @Transactional
     public CustomerShippingRes create(CustomerShippingReq customerShippingReq) {
@@ -133,6 +132,18 @@ public class CustomerShippingService {
             orderRepository.saveAll(orders);
 
             resp.setMessage("Shipping canceled successfully!");
+            resp.setStatusCode(200);
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
+    public CustomerShippingRes getAllByPostOfficeId(Integer postOfficeId) {
+        CustomerShippingRes resp = new CustomerShippingRes();
+        try {
+            List<CustomerShipping> customerShippingList = customerShippingDetailRepository.findByPostOfficeId(postOfficeId);
+            resp.setCustomerShippingList(customerShippingList);
             resp.setStatusCode(200);
         } catch (Exception e) {
             resp.setStatusCode(500);
