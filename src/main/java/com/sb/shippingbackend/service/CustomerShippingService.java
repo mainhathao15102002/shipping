@@ -38,11 +38,9 @@ public class CustomerShippingService {
             CustomerShipping customerShipping = new CustomerShipping();
             LocalDateTime now = LocalDateTime.now();
             customerShipping.setCreatedDate(now.toLocalDate());
-            customerShipping.setEstimatedDate(LocalDate.from(now.plusDays(3)));
             //them tuyen duong
 
             //
-            customerShipping.setStatus(CustomerShippingStatus.PENDING);
             customerShipping.setLicensePlate(customerShippingReq.getLicensePlates());
             CustomerShipping customerShippingResult = customerShippingRepository.save(customerShipping);
 
@@ -55,9 +53,7 @@ public class CustomerShippingService {
             customerShippingDetail.setCustomerShipping(customerShippingResult);
             CustomerShippingDetail customerShippingDetailResult = customerShippingDetailRepository.save(customerShippingDetail);
             if (customerShippingReq.getOrderId() != null) {
-                String orderId = customerShippingReq.getOrderId().isEmpty() ? "" : customerShippingReq.getOrderId();
-
-
+                String orderId = customerShippingReq.getOrderId();
                 Order order = orderRepository.findById(orderId).orElseThrow(null);
                 if (order != null) {
                     if (order.getCustomerShippingDetail() == null) {
@@ -158,4 +154,31 @@ public class CustomerShippingService {
         }
         return resp;
     }
+    @Transactional
+    public CustomerShippingRes startShipping(String customerShippingId) {
+        CustomerShippingRes resp = new CustomerShippingRes();
+        try {
+            CustomerShipping customerShipping = customerShippingRepository.findById(customerShippingId)
+                    .orElseThrow(() -> new IllegalArgumentException("Customer Shipping Id not found: " + customerShippingId));
+            customerShipping.setStatus(CustomerShippingStatus.SHIPPING);
+            LocalDateTime now = LocalDateTime.now();
+            customerShipping.setEstimatedDate(LocalDate.from(now.plusDays(3)));
+            List<Order> orders = orderRepository.findByCustomerShippingDetail(customerShippingId);
+            for (Order order : orders) {
+                order.setStatus(OrderStatus.SHIPPING);
+            }
+
+            customerShippingRepository.save(customerShipping);
+            orderRepository.saveAll(orders);
+
+            resp.setMessage("Shipping started successfully!");
+            resp.setStatusCode(200);
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
+
+
 }

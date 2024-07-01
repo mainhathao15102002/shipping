@@ -31,4 +31,8 @@ public class CustomerShippingController {
     public ResponseEntity<?> findByPostOfficeId(@PathVariable Integer postOfficeId) {
         return ResponseEntity.ok(customerShippingService.getAllByPostOfficeId(postOfficeId));
     }
+    @PutMapping("/start-shipping/{customerShippingId}")
+    public ResponseEntity<?> startTransporting(@PathVariable String customerShippingId) {
+        return ResponseEntity.ok(customerShippingService.startShipping(customerShippingId));
+    }
 }
