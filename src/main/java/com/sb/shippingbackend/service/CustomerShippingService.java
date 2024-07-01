@@ -47,25 +47,31 @@ public class CustomerShippingService {
             CustomerShipping customerShippingResult = customerShippingRepository.save(customerShipping);
 
             CustomerShippingDetail customerShippingDetail = new CustomerShippingDetail();
+
             PostOffice postOffice = postOfficeRepository.findById(customerShippingReq.getPostOfficeId()).orElseThrow(null);
             if (postOffice != null) {
                 customerShippingDetail.setPostOffice(postOffice);
             }
             customerShippingDetail.setCustomerShipping(customerShippingResult);
             CustomerShippingDetail customerShippingDetailResult = customerShippingDetailRepository.save(customerShippingDetail);
+            if (customerShippingReq.getOrderId() != null) {
+                String orderId = customerShippingReq.getOrderId().isEmpty() ? "" : customerShippingReq.getOrderId();
 
-            String orderId = customerShippingReq.getOrderId();
 
-            Order order = orderRepository.findById(orderId).orElseThrow(null);
-            if (order.getCustomerShippingDetail() == null) {
-                order.setCustomerShippingDetail(customerShippingDetailResult);
-                order.setStatus(OrderStatus.WAITING);
-            } else {
-                resp.setMessage("Oder " + order.getId() + " has been in another one!");
-                resp.setStatusCode(200);
-                return resp;
+                Order order = orderRepository.findById(orderId).orElseThrow(null);
+                if (order != null) {
+                    if (order.getCustomerShippingDetail() == null) {
+                        order.setCustomerShippingDetail(customerShippingDetailResult);
+                        order.setStatus(OrderStatus.WAITING);
+                    } else {
+                        resp.setMessage("Oder " + order.getId() + " has been in another one!");
+                        resp.setStatusCode(200);
+                        return resp;
+                    }
+                    orderRepository.save(order);
+                }
             }
-            orderRepository.save(order);
+
             resp.setMessage("SUCCESSFUL!");
             resp.setStatusCode(200);
         } catch (Exception e) {
@@ -139,6 +145,7 @@ public class CustomerShippingService {
         }
         return resp;
     }
+
     public CustomerShippingRes getAllByPostOfficeId(Integer postOfficeId) {
         CustomerShippingRes resp = new CustomerShippingRes();
         try {
