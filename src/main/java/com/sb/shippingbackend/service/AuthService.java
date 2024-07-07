@@ -64,8 +64,7 @@ public class AuthService {
 
     @Autowired
     private EmployeeRepository employeeRepository;
-//    @Autowired
-//    private CacheManager cacheManager;;
+
 
 //    @Cacheable(cacheNames = "tempRegistrations", key = "#email")
 //    public TempRegistration getCachedRegistrationRequest(String email) {
@@ -120,10 +119,44 @@ public class AuthService {
     }
 
     @Transactional
-    public ReqRes signUpAdminAccount()
+    public ReqRes signUpAdminAccount(SignUpAuthReq registrationRequest)
     {
         ReqRes resp = new ReqRes();
+        try {
+            if (userRepository.existsByEmail(registrationRequest.getEmail())) {
+                resp.setMessage("Email already exists!");
+                resp.setStatusCode(400);
+                return resp;
+            }
 
+            // Extract username from token
+            String username = jwtUtils.extractUsername(registrationRequest.getToken());
+            User existingUser = userRepository.findByEmail(username).orElseThrow(() -> new Exception("User not found"));
+
+            // Find the post office associated with the existing user
+            PostOffice postOffice = postOfficeRepository.findByUsername(existingUser.getUsername());
+
+            // Create new User with admin role
+            User user = new User();
+            user.setEmail(registrationRequest.getEmail());
+            user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
+            user.setRole("EMPLOYEE");
+            User savedUser = userRepository.save(user);
+
+            // Create and save Employee associated with the new User and the post office
+            Employee employee = new Employee();
+            employee.setName(registrationRequest.getName());
+            employee.setPhoneNumber(registrationRequest.getPhoneNumber());
+            employee.setPostOffice(postOffice);
+            employee.setUser(savedUser);
+            employeeRepository.save(employee);
+
+            resp.setMessage("Admin account created successfully!");
+            resp.setStatusCode(200);
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
         return resp;
     }
 
@@ -200,7 +233,16 @@ public class AuthService {
             resp.setStatusCode(200);
             resp.setToken(jwt);
             resp.setRefreshToken(refreshToken);
-            resp.setCustomerId(customerRepository.findByUserId(user.getId()).getId());
+            Customer customer = customerRepository.findByUserId(user.getId());
+            if(customer != null) {
+                resp.setCustomerId(customer.getId());
+            }
+            else
+            {
+                Employee employee = employeeRepository.findByUserId(user.getId());
+                resp.setEmployeeId(employee.getId());
+            }
+
             resp.setRole(user.getRole());
             resp.setExpirationTime("24Hr");
             resp.setMessage("Successful!");
@@ -226,7 +268,6 @@ public class AuthService {
         resp.setStatusCode(500);
         return resp;
     }
-
 
     private void revokeToken(User user) {
         List<Token> validTokenListByUser = tokenRepository.findAllTokenByUser(user.getId());

@@ -12,6 +12,7 @@ import lombok.ToString;
 public class Employee {
     @Id
     @Column(name = "manhanvien")
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @Column(name = "tennhanvien")

@@ -10,7 +10,7 @@ import lombok.ToString;
 @Entity
 @Data
 @EqualsAndHashCode
-@Table(name = "tongtien")
+@Table(name = "bangtongtien")
 @ToString(exclude = {"order","bill"})
 public class TotalCost {
 

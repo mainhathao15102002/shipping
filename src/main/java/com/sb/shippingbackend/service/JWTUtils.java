@@ -70,7 +70,6 @@ public class JWTUtils {
     public Boolean checkTokenExpired(String token)
     {
         return extractClaim(token,Claims::getExpiration).before(new Date());
-
     }
 
 

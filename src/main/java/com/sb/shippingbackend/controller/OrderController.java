@@ -24,29 +24,33 @@ public class OrderController {
         return ResponseEntity.ok(orderService.createOrder(createRequest));
     }
 
-    @PostMapping("/admin/order/directPayment")
+    @PostMapping("/v2/order/directPayment")
     public ResponseEntity<?> directPayment(@RequestBody DirectPaymentReq directPaymentReq) {
         return ResponseEntity.ok(orderService.directPayment(directPaymentReq));
     }
 
-    @PutMapping("/admin/order/update")
+    @PutMapping("/v2/order/update")
     public ResponseEntity<ReqRes> update(@RequestBody UpdateOrderReq updateRequest) {
         return ResponseEntity.ok(orderService.updateStatusOrder(updateRequest));
     }
 
-    @GetMapping("/adminuser/order/{orderId}")
+    @GetMapping("/v3/order/{orderId}")
     public ResponseEntity<ReqRes> findOrderById(@PathVariable String orderId) {
         return ResponseEntity.ok(orderService.findOrderByOrderId(orderId));
     }
 
-    @GetMapping("/admin/all")
-    public ResponseEntity<List<Order>> getAllOrdersSortedByCreatedDate() {
-        return ResponseEntity.ok(orderService.getAllOrder());
+    @GetMapping("/v2/order/get-all")
+    public ResponseEntity<List<Order>> getAllOrdersSortedByCreatedDate(@RequestHeader("Authorization") String token) {
+        final String jwtToken;
+        if(token == null || token.isBlank()) {
+            return ResponseEntity.status(500).body(null);
+        }
+        jwtToken = token.substring(7);
+        return ResponseEntity.ok(orderService.getAllOrder(jwtToken));
     }
 
-    @GetMapping("/adminuser/order/getByCustomerId/{customerId}")
+    @GetMapping("/v3/order/getByCustomerId/{customerId}")
     public ResponseEntity<?> findOrdersByCustomerId(@PathVariable String customerId) {
-        ResponseEntity<?> response = ResponseEntity.ok(orderService.findOrdersByCustomerId(customerId));
-        return response;
+        return ResponseEntity.ok(orderService.findOrdersByCustomerId(customerId));
     }
 }

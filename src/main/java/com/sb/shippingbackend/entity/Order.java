@@ -41,6 +41,9 @@ public class Order {
     @Column(name = "phuongthucgiaohang")
     private String deliverMethod;
 
+    @Column(name = "nhanhangtainha")
+    private Boolean receiveAtHome;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "trangthai")
     private OrderStatus status = OrderStatus.PENDING;;
@@ -49,6 +52,11 @@ public class Order {
     @JoinColumn(name = "ma")
     @JsonIgnore
     private Customer customer;
+
+    @ManyToOne
+    @JoinColumn(name = "mabuucuc")
+    @JsonIgnore
+    private PostOffice postOffice;
 
     @OneToOne(mappedBy = "order")
     @JsonIgnore
@@ -62,6 +70,7 @@ public class Order {
     @JoinColumn(name = "maphieunb")
     @JsonIgnore
     private InternalShippingDetail internalShippingDetail;
+
 
     @ManyToOne
     @JoinColumn(name = "maphieukhach")

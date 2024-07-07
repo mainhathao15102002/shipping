@@ -13,6 +13,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ReqRes
 {
+    private String employeeId;
     private String customerId;
     private String orderId;
     private int statusCode;

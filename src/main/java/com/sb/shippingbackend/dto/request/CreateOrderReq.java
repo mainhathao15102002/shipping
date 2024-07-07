@@ -23,6 +23,6 @@ public class CreateOrderReq {
     private int quantity;
     private String customerId;
     private List<Merchandise> merchandiseList;
-
-
+    private Integer postOfficeId;
+    private boolean receiveAtHome;
 }

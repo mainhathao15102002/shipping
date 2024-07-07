@@ -44,10 +44,15 @@ public class OrderService {
     private TmpBillRepository tmpBillRepository;
 
     @Autowired
+    private JWTUtils jwtUtils;
+
+    @Autowired
+    private PostOfficeRepository postOfficeRepository;
+
+    @Autowired
     private TotalCostRepository totalCostRepository;
     @Transactional
-    public DirectPaymentRes directPayment(DirectPaymentReq directPaymentReq)
-    {
+    public DirectPaymentRes directPayment(DirectPaymentReq directPaymentReq) {
         DirectPaymentRes resp = new DirectPaymentRes();
         try{
             Temp_bill tmp = tmpBillRepository.findByOrderId(directPaymentReq.getOrderId());
@@ -95,7 +100,6 @@ public class OrderService {
         }
         return resp;
     }
-
     @Transactional
     public ReqRes createOrder(CreateOrderReq createRequest) {
         ReqRes resp = new ReqRes();
@@ -112,7 +116,11 @@ public class OrderService {
             order.setDeliverMethod(createRequest.getDeliverMethod());
             order.setReceiverPhone(createRequest.getReceiverPhone());
             order.setTotalWeight(createRequest.getTotalWeight());
+            order.setReceiveAtHome(createRequest.isReceiveAtHome());
             optionalCustomer.ifPresent(order::setCustomer);
+
+            PostOffice postOffice = postOfficeRepository.findById(createRequest.getPostOfficeId()).orElseThrow(null);
+            order.setPostOffice(postOffice);
 
             Order orderResult = orderRepository.save(order);
             createRequest.getMerchandiseList().forEach((item) ->
@@ -151,13 +159,6 @@ public class OrderService {
             bill.setCreatedDate(LocalDate.parse(formattedDateTime));
             bill.setOrderId(order.getId());
             tmpBillRepository.save(bill);
-//            TotalCostId totalCostId = new TotalCostId(order.getId(),bill.getId());
-//            TotalCost totalCost = new TotalCost();
-//            totalCost.setId(totalCostId);
-//            totalCost.setTotalCost(createRequest.getTotalCost());
-//            totalCost.setBill(bill);
-//            totalCost.setOrder(order);
-//            totalCostRepository.save()
             if(!orderResult.getId().isEmpty()) {
                 resp.setOrder(orderResult);
                 resp.setMerchandiseList(orderResult.getMerchandiseList());
@@ -174,7 +175,6 @@ public class OrderService {
         }
         return resp;
     }
-
     @Transactional
     public ReqRes updateStatusOrder(UpdateOrderReq updateRequest) {
         ReqRes resp = new ReqRes();
@@ -206,11 +206,11 @@ public class OrderService {
         }
         return resp;
     }
-
-    public List<Order> getAllOrder() {
-        return orderRepository.findAllOrder();
+    public List<Order> getAllOrder(String token) {
+        String username = jwtUtils.extractUsername(token);
+        PostOffice postOffice = postOfficeRepository.findByUsername(username);
+        return orderRepository.findByPostOfficeId(postOffice.getId());
     }
-
     public ReqRes findOrdersByCustomerId(String customerId) {
         ReqRes resp = new ReqRes();
         try {
@@ -229,8 +229,6 @@ public class OrderService {
         }
         return resp;
     }
-
-
     public ReqRes findOrderByOrderId(String orderId) {
         ReqRes resp = new ReqRes();
         try {

@@ -17,25 +17,25 @@ public class BillController {
     private BillService billService;
 
 
-    @PostMapping("/admin/bill/deactived")
+    @PostMapping("/v2/bill/deactived")
     public ResponseEntity<ReqRes> updateStatus(@RequestBody UpdateBillStatusReq updateRequest) {
         return ResponseEntity.ok(billService.updateStatus(updateRequest));
     }
 
-    @GetMapping("/adminuser/bill/getBillByOrderId/{orderId}")
+    @GetMapping("/v3/bill/getBillByOrderId/{orderId}")
     public ResponseEntity<BillResponse> searchBillByOrderId(@PathVariable String orderId) {
         return ResponseEntity.ok(billService.findBillByOrder_Id(orderId));
     }
-    @GetMapping("/adminuser/bill/{id}")
+    @GetMapping("/v3/bill/{id}")
     public ResponseEntity<BillResponse> searchBillById(@PathVariable String billId) {
         return ResponseEntity.ok(billService.findBillById(billId));
     }
-    @GetMapping("/adminuser/bill/getBillByCustomerId/{customerId}")
+    @GetMapping("/v3/bill/getBillByCustomerId/{customerId}")
     public ResponseEntity<?> getBillsByCustomerId(@PathVariable String customerId) {
         return ResponseEntity.ok(billService.getBillsByCustomerId(customerId));
     }
 
-    @GetMapping("/admin/getAllBill")
+    @GetMapping("/v2/getAllBill")
     public ResponseEntity<?> getAllBills() {
         return ResponseEntity.ok(billService.getAllBills());
     }

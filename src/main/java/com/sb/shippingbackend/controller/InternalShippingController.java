@@ -7,24 +7,39 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/admin/internalShipping")
+@RequestMapping("/v2/internalShipping")
 public class InternalShippingController {
     @Autowired
     private InternalShippingService internalShippingService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> create(@RequestBody InternalShippingReq internalShippingReq) {
-        return ResponseEntity.ok(internalShippingService.create(internalShippingReq));
+    public ResponseEntity<?> create(@RequestBody InternalShippingReq internalShippingReq,@RequestHeader("Authorization") String token) {
+        final String jwtToken;
+        if(token == null || token.isBlank()) {
+            return ResponseEntity.status(500).body(null);
+        }
+        jwtToken = token.substring(7);
+        return ResponseEntity.ok(internalShippingService.create(internalShippingReq,jwtToken));
     }
 
     @PostMapping("/update")
-    public ResponseEntity<?> updateOrderList(@RequestBody InternalShippingReq internalShippingReq) {
-        return ResponseEntity.ok(internalShippingService.update(internalShippingReq));
+    public ResponseEntity<?> updateOrderList(@RequestBody InternalShippingReq internalShippingReq, @RequestHeader("Authorization") String token) {
+        final String jwtToken;
+        if(token == null || token.isBlank()) {
+            return ResponseEntity.status(500).body(null);
+        }
+        jwtToken = token.substring(7);
+        return ResponseEntity.ok(internalShippingService.update(internalShippingReq,jwtToken));
     }
 
-    @GetMapping("/{postOfficeId}")
-    public ResponseEntity<?> findByPostOfficeId(@PathVariable Integer postOfficeId) {
-        return ResponseEntity.ok(internalShippingService.getAllByPostOfficeId(postOfficeId));
+    @GetMapping("/get-all")
+    public ResponseEntity<?> findByPostOfficeId(@RequestHeader("Authorization") String token) {
+        final String jwtToken;
+        if(token == null || token.isBlank()) {
+            return ResponseEntity.status(500).body(null);
+        }
+        jwtToken = token.substring(7);
+        return ResponseEntity.ok(internalShippingService.getAllByPostOfficeId(jwtToken));
     }
 
     @PutMapping("/start-transporting/{internalShippingId}")

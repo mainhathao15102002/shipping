@@ -19,103 +19,120 @@ import java.util.List;
 public class CustomerShippingService {
     @Autowired
     private CustomerShippingRepository customerShippingRepository;
-
     @Autowired
     private CustomerShippingDetailRepository customerShippingDetailRepository;
-
     @Autowired
     private PostOfficeRepository postOfficeRepository;
-
     @Autowired
     private OrderRepository orderRepository;
     @Autowired
     private CustomerRepository customerRepository;
-
+    @Autowired
+    private EmployeeRepository employeeRepository;
+    @Autowired
+    private JWTUtils jwtUtil;
     @Transactional
-    public CustomerShippingRes create(CustomerShippingReq customerShippingReq) {
+    public CustomerShippingRes create(CustomerShippingReq customerShippingReq, String token) {
         CustomerShippingRes resp = new CustomerShippingRes();
         try {
-            CustomerShipping customerShipping = new CustomerShipping();
-            LocalDateTime now = LocalDateTime.now();
-            customerShipping.setCreatedDate(now.toLocalDate());
-            //them tuyen duong
+            // Giải mã token để lấy username
+            String username = jwtUtil.extractUsername(token);
 
-            //
-            customerShipping.setLicensePlate(customerShippingReq.getLicensePlates());
-            CustomerShipping customerShippingResult = customerShippingRepository.save(customerShipping);
+            // Tìm Employee dựa trên username
+            Employee employee = employeeRepository.findByUserEmail(username);
 
-            CustomerShippingDetail customerShippingDetail = new CustomerShippingDetail();
+            if (employee != null && employee.getPostOffice() != null) {
+                PostOffice postOffice = employee.getPostOffice();
 
-            PostOffice postOffice = postOfficeRepository.findById(customerShippingReq.getPostOfficeId()).orElseThrow(null);
-            if (postOffice != null) {
+                CustomerShipping customerShipping = new CustomerShipping();
+                LocalDateTime now = LocalDateTime.now();
+                customerShipping.setCreatedDate(now.toLocalDate());
+                customerShipping.setLicensePlate(customerShippingReq.getLicensePlates());
+                CustomerShipping customerShippingResult = customerShippingRepository.save(customerShipping);
+
+                CustomerShippingDetail customerShippingDetail = new CustomerShippingDetail();
                 customerShippingDetail.setPostOffice(postOffice);
-            }
-            customerShippingDetail.setCustomerShipping(customerShippingResult);
-            CustomerShippingDetail customerShippingDetailResult = customerShippingDetailRepository.save(customerShippingDetail);
-            if (customerShippingReq.getOrderId() != null) {
-                String orderId = customerShippingReq.getOrderId();
-                Order order = orderRepository.findById(orderId).orElseThrow(null);
-                if (order != null) {
-                    if (order.getCustomerShippingDetail() == null) {
-                        order.setCustomerShippingDetail(customerShippingDetailResult);
-                        order.setStatus(OrderStatus.WAITING);
-                    } else {
-                        resp.setMessage("Oder " + order.getId() + " has been in another one!");
-                        resp.setStatusCode(200);
-                        return resp;
-                    }
-                    orderRepository.save(order);
-                }
-            }
+                customerShippingDetail.setCustomerShipping(customerShippingResult);
+                CustomerShippingDetail customerShippingDetailResult = customerShippingDetailRepository.save(customerShippingDetail);
 
-            resp.setMessage("SUCCESSFUL!");
-            resp.setStatusCode(200);
+                if (customerShippingReq.getOrderId() != null) {
+                    String orderId = customerShippingReq.getOrderId();
+                    Order order = orderRepository.findById(orderId).orElseThrow(null);
+                    if (order != null) {
+                        if (order.getCustomerShippingDetail() == null) {
+                            order.setCustomerShippingDetail(customerShippingDetailResult);
+                        } else {
+                            resp.setMessage("Order " + order.getId() + " has been in another one!");
+                            resp.setStatusCode(200);
+                            return resp;
+                        }
+                        orderRepository.save(order);
+                    }
+                }
+
+                resp.setMessage("SUCCESSFUL!");
+                resp.setStatusCode(200);
+            } else {
+                resp.setStatusCode(404);
+                resp.setError("PostOffice not found for the user.");
+            }
         } catch (Exception e) {
             resp.setStatusCode(500);
             resp.setError(e.getMessage());
         }
         return resp;
     }
-
     @Transactional
-    public CustomerShippingRes update(CustomerShippingReq customerShippingReq) {
+    public CustomerShippingRes update(CustomerShippingReq customerShippingReq, String token) {
         CustomerShippingRes resp = new CustomerShippingRes();
         try {
-            CustomerShippingDetail customerShippingDetail = customerShippingDetailRepository.findById(customerShippingReq.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("InternalShippingDetail not found: " + customerShippingReq.getId()));
+            // Giải mã token để lấy username
+            String username = jwtUtil.extractUsername(token);
 
-            List<Order> existingOrders = orderRepository.findByCustomerShippingDetail(customerShippingReq.getId());
-            for (Order order : existingOrders) {
-                order.setCustomerShippingDetail(null);
-                order.setStatus(OrderStatus.STOCKED);
+            // Tìm Employee dựa trên username
+            Employee employee = employeeRepository.findByUserEmail(username);
+
+            if (employee != null && employee.getPostOffice() != null) {
+                PostOffice postOffice = employee.getPostOffice();
+
+                CustomerShippingDetail customerShippingDetail = customerShippingDetailRepository.findById(customerShippingReq.getId())
+                        .orElseThrow(() -> new IllegalArgumentException("CustomerShippingDetail not found: " + customerShippingReq.getId()));
+
+                List<Order> existingOrders = orderRepository.findByCustomerShippingDetail(customerShippingReq.getId());
+                for (Order order : existingOrders) {
+                    order.setCustomerShippingDetail(null);
+                }
+                orderRepository.saveAll(existingOrders);
+
+                CustomerShipping customerShipping = customerShippingDetail.getCustomerShipping();
+                if (customerShippingReq.getEstimatedDate() != null) {
+                    customerShipping.setEstimatedDate(customerShippingReq.getEstimatedDate());
+                }
+                customerShipping.setLicensePlate(customerShippingReq.getLicensePlates());
+
+                customerShippingRepository.save(customerShipping);
+                customerShippingDetail.setPostOffice(postOffice);
+
+                String orderId = customerShippingReq.getOrderId();
+                Order order = orderRepository.findById(orderId)
+                        .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+                order.setCustomerShippingDetail(customerShippingDetail);
+                orderRepository.save(order);
+
+                customerShippingDetailRepository.save(customerShippingDetail);
+
+                resp.setMessage("UPDATE SUCCESSFUL!");
+                resp.setStatusCode(200);
+            } else {
+                resp.setStatusCode(404);
+                resp.setError("PostOffice not found for the user.");
             }
-            orderRepository.saveAll(existingOrders);
-            CustomerShipping customerShipping = customerShippingDetail.getCustomerShipping();
-            if (customerShippingReq.getEstimatedDate() != null) {
-                customerShipping.setEstimatedDate(customerShippingReq.getEstimatedDate());
-            }
-            customerShipping.setLicensePlate(customerShippingReq.getLicensePlates());
-
-            customerShippingRepository.save(customerShipping);
-            PostOffice postOffice = postOfficeRepository.findById(customerShippingReq.getPostOfficeId()).orElseThrow(null);
-            customerShippingDetail.setPostOffice(postOffice);
-            String orderId = customerShippingReq.getOrderId();
-            Order order = orderRepository.findById(orderId)
-                    .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
-            order.setCustomerShippingDetail(customerShippingDetail);
-            order.setStatus(OrderStatus.WAITING);
-
-            orderRepository.save(order);
-            customerShippingDetailRepository.save(customerShippingDetail);
-            resp.setMessage("UPDATE SUCCESSFUL!");
-            resp.setStatusCode(200);
         } catch (Exception e) {
             resp.setStatusCode(500);
             resp.setError(e.getMessage());
         }
         return resp;
     }
-
     @Transactional
     public CustomerShippingRes cancelShipping(String customerShippingId) {
         CustomerShippingRes resp = new CustomerShippingRes();
@@ -141,12 +158,45 @@ public class CustomerShippingService {
         }
         return resp;
     }
+    public CustomerShippingRes getAllByPostOfficeId(String token) {   CustomerShippingRes resp = new CustomerShippingRes();
+        try {
+            // Giải mã token để lấy username
+            String username = jwtUtil.extractUsername(token);
 
-    public CustomerShippingRes getAllByPostOfficeId(Integer postOfficeId) {
+            // Tìm Employee dựa trên username
+            Employee employee = employeeRepository.findByUserEmail(username);
+
+            if (employee != null && employee.getPostOffice() != null) {
+                // Lấy PostOfficeId từ Employee
+                Integer postOfficeId = employee.getPostOffice().getId();
+
+                // Lấy danh sách CustomerShipping thuộc PostOffice
+                List<CustomerShipping> customerShippingList = customerShippingDetailRepository.findByPostOfficeId(postOfficeId);
+                resp.setCustomerShippingList(customerShippingList);
+                resp.setStatusCode(200);
+            } else {
+                resp.setStatusCode(404);
+                resp.setError("PostOffice not found for the user.");
+            }
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
+    @Transactional
+    public CustomerShippingRes confirmedCustomerShipping(String customerShippingId) {
         CustomerShippingRes resp = new CustomerShippingRes();
         try {
-            List<CustomerShipping> customerShippingList = customerShippingDetailRepository.findByPostOfficeId(postOfficeId);
-            resp.setCustomerShippingList(customerShippingList);
+            CustomerShipping customerShipping = customerShippingRepository.findById(customerShippingId)
+                    .orElseThrow(() -> new IllegalArgumentException("Customer Shipping Id not found: " + customerShippingId));
+            customerShipping.setStatus(CustomerShippingStatus.CONFIRMED);
+            Order order = orderRepository.findOneByCustomerShippingDetail(customerShippingId);
+            order.setStatus(OrderStatus.WAITING);
+            customerShippingRepository.save(customerShipping);
+            orderRepository.save(order);
+
+            resp.setMessage("Successful!");
             resp.setStatusCode(200);
         } catch (Exception e) {
             resp.setStatusCode(500);
@@ -170,7 +220,6 @@ public class CustomerShippingService {
 
             customerShippingRepository.save(customerShipping);
             orderRepository.saveAll(orders);
-
             resp.setMessage("Shipping started successfully!");
             resp.setStatusCode(200);
         } catch (Exception e) {

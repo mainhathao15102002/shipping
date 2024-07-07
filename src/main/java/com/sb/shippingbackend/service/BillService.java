@@ -10,6 +10,7 @@ import com.sb.shippingbackend.repository.OrderRepository;
 import com.sb.shippingbackend.repository.TotalCostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,6 +39,7 @@ public class BillService {
         }
         return resp;
     }
+    @Transactional
     public List<BillResponse> getAllBills() {
         List<Bill> bills = billRepository.findAll();
         return bills.stream()

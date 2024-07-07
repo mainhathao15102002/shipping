@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/adminuser/postOffice")
+@RequestMapping("/v3/postOffice")
 public class PostOfficeController {
     @Autowired
     private PostService postService;

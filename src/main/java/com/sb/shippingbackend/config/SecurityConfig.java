@@ -51,9 +51,12 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/api-docs/**",
                                 "/adminuser/customer/**").permitAll()
+                        .requestMatchers("auth/admin/**").hasAnyAuthority("ADMIN")
                         .requestMatchers("/admin/**").hasAnyAuthority("ADMIN")
+                        .requestMatchers("/employee/**").hasAnyAuthority("EMPLOYEE")
                         .requestMatchers("/user/**").hasAnyAuthority("USER")
-                        .requestMatchers("/adminuser/**").hasAnyAuthority("USER","ADMIN")
+                        .requestMatchers("/v3/**").hasAnyAuthority("USER","ADMIN","EMPLOYEE")
+                        .requestMatchers("/v2/**").hasAnyAuthority("ADMIN","EMPLOYEE")
                         .anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider()).addFilterBefore(

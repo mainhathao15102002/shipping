@@ -7,18 +7,28 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/admin/customer-shipping")
+@RequestMapping("/v2/customer-shipping")
 public class CustomerShippingController {
     @Autowired
     private CustomerShippingService customerShippingService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createCustomerShipping(@RequestBody CustomerShippingReq customerShippingReq) {
-        return ResponseEntity.ok(customerShippingService.create(customerShippingReq));
+    public ResponseEntity<?> createCustomerShipping(@RequestBody CustomerShippingReq customerShippingReq,@RequestHeader("Authorization") String token) {
+        final String jwtToken;
+        if(token == null || token.isBlank()) {
+            return ResponseEntity.status(500).body(null);
+        }
+        jwtToken = token.substring(7);
+        return ResponseEntity.ok(customerShippingService.create(customerShippingReq, jwtToken));
     }
     @PostMapping("/update")
-    public ResponseEntity<?> updateCustomerShipping(@RequestBody CustomerShippingReq customerShippingReq) {
-        return ResponseEntity.ok(customerShippingService.update(customerShippingReq));
+    public ResponseEntity<?> updateCustomerShipping(@RequestBody CustomerShippingReq customerShippingReq, @RequestHeader("Authorization") String token) {
+        final String jwtToken;
+        if(token == null || token.isBlank()) {
+            return ResponseEntity.status(500).body(null);
+        }
+        jwtToken = token.substring(7);
+        return ResponseEntity.ok(customerShippingService.update(customerShippingReq, jwtToken));
     }
 
     @PutMapping("/cancel/{customerShippingId}")
@@ -27,12 +37,22 @@ public class CustomerShippingController {
     }
 
 
-    @GetMapping("/{postOfficeId}")
-    public ResponseEntity<?> findByPostOfficeId(@PathVariable Integer postOfficeId) {
-        return ResponseEntity.ok(customerShippingService.getAllByPostOfficeId(postOfficeId));
+    @GetMapping("/get-all")
+    public ResponseEntity<?> findByPostOfficeId(@RequestHeader("Authorization") String token) {
+        final String jwtToken;
+        if(token == null || token.isBlank()) {
+            return ResponseEntity.status(500).body(null);
+        }
+        jwtToken = token.substring(7);
+        return ResponseEntity.ok(customerShippingService.getAllByPostOfficeId(jwtToken));
     }
+
     @PutMapping("/start-shipping/{customerShippingId}")
     public ResponseEntity<?> startTransporting(@PathVariable String customerShippingId) {
         return ResponseEntity.ok(customerShippingService.startShipping(customerShippingId));
+    }
+    @PutMapping("/confirm/{customerShippingId}")
+    public ResponseEntity<?> confirmed(@PathVariable String customerShippingId) {
+        return ResponseEntity.ok(customerShippingService.confirmedCustomerShipping(customerShippingId));
     }
 }

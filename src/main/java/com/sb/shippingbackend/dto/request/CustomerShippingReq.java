@@ -15,5 +15,4 @@ public class CustomerShippingReq {
     private LocalDate estimatedDate;
     private String licensePlates;
     private String orderId;
-    private Integer postOfficeId;
 }

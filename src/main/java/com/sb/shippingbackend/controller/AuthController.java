@@ -30,6 +30,12 @@ public class AuthController {
         return authService.signUp(registrationRequest);
     }
 
+    @PostMapping("admin/signup-employee")
+    public ReqRes signUpEmployee(@RequestBody SignUpAuthReq registrationRequest) {
+        return authService.signUpAdminAccount(registrationRequest);
+    }
+
+
     @PostMapping("/verify")
     public ReqRes verify(@RequestBody VerificationSignUpReq verificationRequest) {
         return authService.verifyAndRegister(verificationRequest);
