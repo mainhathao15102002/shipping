@@ -18,7 +18,7 @@ public class Truck {
     private Integer id;
 
     @Column(name = "trangthai")
-    private TruckStatus status = TruckStatus.WAITING;
+    private TruckStatus status;
 
     @Column(name = "biensoxe")
     private String licensePlates;

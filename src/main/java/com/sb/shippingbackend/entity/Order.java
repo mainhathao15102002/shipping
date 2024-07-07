@@ -71,7 +71,6 @@ public class Order {
     @JsonIgnore
     private InternalShippingDetail internalShippingDetail;
 
-
     @ManyToOne
     @JoinColumn(name = "maphieukhach")
     @JsonIgnore

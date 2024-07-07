@@ -18,13 +18,10 @@ import java.util.Optional;
 
 @Service
 public class CustomerService {
-
     @Autowired
     private CustomerRepository customerRepository;
-
     @Autowired
     private AddressRepository addressRepository;
-
     public ReqRes addAddress(AddressReq addRequest) {
         ReqRes resp = new ReqRes();
         try {
@@ -142,7 +139,6 @@ public class CustomerService {
         }
         return resp;
     }
-
     public ReqRes deleteAddressByAddress(String customerId, String address) {
         ReqRes resp = new ReqRes();
         try {
@@ -161,7 +157,6 @@ public class CustomerService {
         }
         return resp;
     }
-
     public ReqRes getAddressByCustomerId(String customerId, String address) {
         ReqRes resp = new ReqRes();
         try {

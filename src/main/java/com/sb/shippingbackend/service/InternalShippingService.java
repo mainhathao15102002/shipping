@@ -32,23 +32,20 @@ public class InternalShippingService {
 
     @Autowired
     private PostOfficeRepository postOfficeRepository;
+
+    @Autowired
     private TruckRepository truckRepository;
 
     @Transactional
     public InternalShippingRes create(InternalShippingReq internalShippingReq, String token) {
         InternalShippingRes resp = new InternalShippingRes();
         try {
-            // Giải mã token để lấy username
             String username = jwtUtil.extractUsername(token);
-
-            // Tìm Employee dựa trên username
             Employee employee = employeeRepository.findByUserEmail(username);
-
             if (employee != null && employee.getPostOffice() != null) {
                 PostOffice postOfficeSend = employee.getPostOffice();
                 PostOffice postOfficeReceive = postOfficeRepository.findById(internalShippingReq.getPostOfficeRecieve())
                         .orElseThrow(() -> new IllegalArgumentException("Post office receive not found"));
-
                 InternalShipping internalShipping = new InternalShipping();
                 LocalDateTime now = LocalDateTime.now();
                 internalShipping.setCreatedDate(now.toLocalDate());
@@ -58,12 +55,10 @@ public class InternalShippingService {
                 Truck truck = truckRepository.findById(internalShippingReq.getTruckId()).orElseThrow(null);
                 internalShipping.setTruck(truck);
                 InternalShipping internalShippingResult = internalShippingRepository.save(internalShipping);
-
                 InternalShippingDetail internalShippingDetail = new InternalShippingDetail();
                 internalShippingDetail.setPostOffice(postOfficeSend);
                 internalShippingDetail.setInternalShipping(internalShippingResult);
                 InternalShippingDetail internalResult = internalShippingDetailRepository.save(internalShippingDetail);
-
                 List<String> listOrderId = internalShippingReq.getOrderIdList();
                 List<Order> orders = new ArrayList<>();
                 for (String orderId : listOrderId) {
@@ -92,25 +87,18 @@ public class InternalShippingService {
         return resp;
     }
 
-
     @Transactional
     public InternalShippingRes update(InternalShippingReq internalShippingReq, String token) {
         InternalShippingRes resp = new InternalShippingRes();
         try {
-            // Giải mã token để lấy username
             String username = jwtUtil.extractUsername(token);
-
-            // Tìm Employee dựa trên username
             Employee employee = employeeRepository.findByUserEmail(username);
-
             if (employee != null && employee.getPostOffice() != null) {
                 PostOffice postOfficeSend = employee.getPostOffice();
                 PostOffice postOfficeReceive = postOfficeRepository.findById(internalShippingReq.getPostOfficeRecieve())
                         .orElseThrow(() -> new IllegalArgumentException("Post office receive not found"));
-
                 InternalShippingDetail internalShippingDetail = internalShippingDetailRepository.findById(internalShippingReq.getDetailId())
                         .orElseThrow(() -> new IllegalArgumentException("InternalShippingDetail not found: " + internalShippingReq.getDetailId()));
-
                 List<Order> existingOrders = orderRepository.findByInternalShippingDetail(internalShippingReq.getDetailId());
                 for (Order order : existingOrders) {
                     order.setInternalShippingDetail(null);
@@ -124,10 +112,8 @@ public class InternalShippingService {
                 internalShipping.setPostOfficeRecieve(postOfficeReceive);
                 Truck truck = truckRepository.findById(internalShippingReq.getTruckId()).orElseThrow(null);
                 internalShipping.setTruck(truck);
-
                 internalShippingRepository.save(internalShipping);
                 internalShippingDetail.setPostOffice(postOfficeSend);
-
                 List<String> listOrderId = internalShippingReq.getOrderIdList();
                 List<Order> orders = new ArrayList<>();
                 for (String orderId : listOrderId) {
