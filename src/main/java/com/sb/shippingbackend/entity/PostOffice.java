@@ -12,8 +12,8 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "buucuc")
-@ToString(exclude = {"employeeList","internalShippingList","orderList"})
-@JsonIgnoreProperties({"employeeList", "internalShippingList","orderList"})
+@ToString(exclude = {"employeeList","internalShippingList","orderList","truckList"})
+@JsonIgnoreProperties({"employeeList", "internalShippingList","orderList","truckList"})
 public class PostOffice {
 
     @Id
@@ -40,6 +40,10 @@ public class PostOffice {
     @OneToMany(mappedBy = "postOffice")
     @JsonIgnore
     private List<InternalShippingDetail> internalShippingList;
+
+    @OneToMany(mappedBy = "postOffice")
+    @JsonIgnore
+    private List<Truck> truckList;
 
     @OneToMany(mappedBy = "postOffice", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore

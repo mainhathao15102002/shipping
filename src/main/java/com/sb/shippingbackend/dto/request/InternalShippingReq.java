@@ -19,7 +19,7 @@ public class InternalShippingReq {
     private String detailId;
     private LocalDate departureDate;
     private Date completedDate;
-    private String licensePlates;
+    private Integer truckId;
     private List<String> orderIdList;
     private Integer postOfficeSend;
     private Integer postOfficeRecieve;

@@ -35,8 +35,10 @@ public class InternalShipping {
     @JsonIgnoreProperties({"employeeList", "internalShippingList"})
     private PostOffice postOfficeRecieve;
 
-    @Column(name = "biensoxe")
-    private String licensePlates;
+    @OneToOne
+    @JoinColumn(name = "maxe")
+    private Truck truck;
+
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trangthai")

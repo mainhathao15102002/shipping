@@ -32,6 +32,8 @@ public class InternalShippingService {
 
     @Autowired
     private PostOfficeRepository postOfficeRepository;
+    private TruckRepository truckRepository;
+
     @Transactional
     public InternalShippingRes create(InternalShippingReq internalShippingReq, String token) {
         InternalShippingRes resp = new InternalShippingRes();
@@ -53,8 +55,8 @@ public class InternalShippingService {
                 internalShipping.setDepartureDate(internalShippingReq.getDepartureDate());
                 internalShipping.setPostOfficeSend(postOfficeSend);
                 internalShipping.setPostOfficeRecieve(postOfficeReceive);
-                internalShipping.setLicensePlates(internalShippingReq.getLicensePlates());
-
+                Truck truck = truckRepository.findById(internalShippingReq.getTruckId()).orElseThrow(null);
+                internalShipping.setTruck(truck);
                 InternalShipping internalShippingResult = internalShippingRepository.save(internalShipping);
 
                 InternalShippingDetail internalShippingDetail = new InternalShippingDetail();
@@ -120,7 +122,8 @@ public class InternalShippingService {
                 internalShipping.setDepartureDate(internalShippingReq.getDepartureDate());
                 internalShipping.setPostOfficeSend(postOfficeSend);
                 internalShipping.setPostOfficeRecieve(postOfficeReceive);
-                internalShipping.setLicensePlates(internalShippingReq.getLicensePlates());
+                Truck truck = truckRepository.findById(internalShippingReq.getTruckId()).orElseThrow(null);
+                internalShipping.setTruck(truck);
 
                 internalShippingRepository.save(internalShipping);
                 internalShippingDetail.setPostOffice(postOfficeSend);

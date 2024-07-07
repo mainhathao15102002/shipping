@@ -228,6 +228,4 @@ public class CustomerShippingService {
         }
         return resp;
     }
-
-
 }

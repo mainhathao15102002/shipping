@@ -119,7 +119,7 @@ public class AuthService {
     }
 
     @Transactional
-    public ReqRes signUpAdminAccount(SignUpAuthReq registrationRequest)
+    public ReqRes signUpAdminAccount(SignUpAuthReq registrationRequest, String token)
     {
         ReqRes resp = new ReqRes();
         try {
@@ -128,22 +128,14 @@ public class AuthService {
                 resp.setStatusCode(400);
                 return resp;
             }
-
-            // Extract username from token
-            String username = jwtUtils.extractUsername(registrationRequest.getToken());
+            String username = jwtUtils.extractUsername(token);
             User existingUser = userRepository.findByEmail(username).orElseThrow(() -> new Exception("User not found"));
-
-            // Find the post office associated with the existing user
             PostOffice postOffice = postOfficeRepository.findByUsername(existingUser.getUsername());
-
-            // Create new User with admin role
             User user = new User();
             user.setEmail(registrationRequest.getEmail());
             user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
             user.setRole("EMPLOYEE");
             User savedUser = userRepository.save(user);
-
-            // Create and save Employee associated with the new User and the post office
             Employee employee = new Employee();
             employee.setName(registrationRequest.getName());
             employee.setPhoneNumber(registrationRequest.getPhoneNumber());

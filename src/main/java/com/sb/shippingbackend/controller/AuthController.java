@@ -31,8 +31,13 @@ public class AuthController {
     }
 
     @PostMapping("admin/signup-employee")
-    public ReqRes signUpEmployee(@RequestBody SignUpAuthReq registrationRequest) {
-        return authService.signUpAdminAccount(registrationRequest);
+    public ResponseEntity<?> signUpEmployee(@RequestBody SignUpAuthReq registrationRequest,@RequestHeader("Authorization") String token) {
+        final String jwtToken;
+        if(token == null || token.isBlank()) {
+            return ResponseEntity.status(500).body(null);
+        }
+        jwtToken = token.substring(7);
+        return ResponseEntity.ok(authService.signUpAdminAccount(registrationRequest,jwtToken));
     }
 
 

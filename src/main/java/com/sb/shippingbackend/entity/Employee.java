@@ -1,6 +1,7 @@
 package com.sb.shippingbackend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
@@ -27,7 +28,7 @@ public class Employee {
     private PostOffice postOffice;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JsonIgnore
+    @JsonIgnoreProperties({"id","password","role","tokenList"})
     @JoinColumn(name = "mataikhoan")
     private User user;
 

@@ -16,5 +16,4 @@ public class SignUpAuthReq {
     private String taxCode;
     private String password;
     private Integer postOfficeId;
-    private String token;
 }

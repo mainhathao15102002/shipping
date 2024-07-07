@@ -19,17 +19,13 @@ public class EmployeeController {
     private EmployeeService employeeService;
 
     @GetMapping("/get-all")
-    public ResponseEntity<List<Employee>> getAllEmployeesByPostOffice(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> getAllEmployeesByPostOffice(@RequestHeader("Authorization") String token) {
         final String jwtToken;
         if(token == null || token.isBlank()) {
             return ResponseEntity.status(500).body(null);
         }
         jwtToken = token.substring(7);
-        List<Employee> employees = employeeService.getAllEmployeesByPostOffice(jwtToken);
-        if (employees != null) {
-            return ResponseEntity.ok(employees);
-        } else {
-            return ResponseEntity.status(404).body(null);
-        }
+        return ResponseEntity.ok(employeeService.getAllEmployeesByPostOffice(jwtToken));
+
     }
 }
