@@ -28,7 +28,7 @@ public class Employee {
     private PostOffice postOffice;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JsonIgnoreProperties({"id","password","role","tokenList"})
+    @JsonIgnoreProperties(value = {"username","id", "password", "role", "tokenList", "authorities", "accountNonExpired", "accountNonLocked", "credentialsNonExpired", "enabled"})
     @JoinColumn(name = "mataikhoan")
     private User user;
 
