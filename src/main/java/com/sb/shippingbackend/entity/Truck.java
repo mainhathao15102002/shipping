@@ -1,24 +1,22 @@
 package com.sb.shippingbackend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 @Entity
 @Data
-@EqualsAndHashCode
 @Table(name = "xetai")
-@ToString(exclude = {"postOffice"})
+@ToString(exclude = {"postOffice","internalShipping"})
 public class Truck {
     @Id
     @Column(name = "maxe")
     private Integer id;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "trangthai")
-    private TruckStatus status;
+    private TruckStatus status = TruckStatus.WAITING;
 
     @Column(name = "biensoxe")
     private String licensePlates;

@@ -23,12 +23,14 @@ public class TruckService {
 
     public List<Truck> getAll(String token)
     {
-        String username = jwtUtils.extractUsername(token);
-        Employee employee = employeeRepository.findByUserEmail(username);
-        if (employee != null && employee.getPostOffice() != null) {
-            Integer postOfficeId = employee.getPostOffice().getId();
-            return truckRepository.findAllByPostOfficeId(postOfficeId);
-        }
-        return null;
+//        String username = jwtUtils.extractUsername(token);
+//        Employee employee = employeeRepository.findByUserEmail(username);
+//        if (employee != null && employee.getPostOffice() != null) {
+//            List<Truck> truckList =  truckRepository.findAll();
+//            Integer postOfficeId = employee.getPostOffice().getId();
+//            return truckRepository.findAllByPostOfficeId(postOfficeId);
+//        }
+        List<Truck> truckList =  truckRepository.findAll();
+        return truckList;
     }
 }

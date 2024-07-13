@@ -8,12 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface InternalShippingDetailRepository extends JpaRepository<InternalShippingDetail, String> {
-    @Query("SELECT i FROM InternalShipping i WHERE (:postOfficeId = i.postOfficeSend.id OR " +
-            "i.listPostOffice LIKE CONCAT('%-', :postOfficeId, '-%') OR " +
-            "i.listPostOffice LIKE CONCAT(:postOfficeId, '-%') OR " +
-            "i.listPostOffice LIKE CONCAT('%-', :postOfficeId)) AND" +
-            "(i.listPostOfficeCompleted NOT LIKE CONCAT('%-', :postOfficeId, '-%') AND " +
-            "i.listPostOfficeCompleted NOT LIKE CONCAT(:postOfficeId, '-%') AND " +
-            "i.listPostOfficeCompleted NOT LIKE CONCAT('%-', :postOfficeId)) ")
+    @Query("SELECT i FROM InternalShipping i WHERE :postOfficeId = i.postOfficeSend.id OR i.listPostOffice LIKE %:postOfficeId%")
     List<InternalShipping> findByPostOfficeId(Integer postOfficeId);
 }

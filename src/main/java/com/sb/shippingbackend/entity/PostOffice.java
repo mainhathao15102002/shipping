@@ -13,7 +13,7 @@ import java.util.List;
 @Data
 @Table(name = "buucuc")
 @ToString(exclude = {"employeeList","internalShippingList","orderList","truckList"})
-@JsonIgnoreProperties({"employeeList", "internalShippingList","orderList","truckList"})
+@JsonIgnoreProperties({"employeeList", "internalShippingList","orderList","truckList","internalList"})
 public class PostOffice {
 
     @Id
@@ -40,6 +40,10 @@ public class PostOffice {
     @OneToMany(mappedBy = "postOffice")
     @JsonIgnore
     private List<InternalShippingDetail> internalShippingList;
+
+    @OneToMany(mappedBy = "postOfficeSend")
+    @JsonIgnore
+    private List<InternalShipping> internalList;
 
     @OneToMany(mappedBy = "postOffice")
     @JsonIgnore
