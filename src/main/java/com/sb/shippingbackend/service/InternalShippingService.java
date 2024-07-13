@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -100,7 +101,21 @@ public class InternalShippingService {
 
                 InternalShipping internalShipping = internalShippingRepository.findById(internalShippingReq.getDetailId())
                         .orElseThrow(() -> new IllegalArgumentException("InternalShipping not found: " + internalShippingReq.getDetailId()));
-                internalShipping.setListPostOfficeCompleted(internalShipping.getListPostOfficeCompleted() + "-" + postOffice.getId());
+
+                String completedPostOffices = internalShipping.getListPostOfficeCompleted();
+                if (completedPostOffices != null && completedPostOffices.endsWith("-")) {
+                    completedPostOffices = completedPostOffices.substring(0, completedPostOffices.length() - 1);
+                }
+
+                if (completedPostOffices != null) {
+                    String[] completedPostOfficeArray = completedPostOffices.split("-");
+                    if (Arrays.asList(completedPostOfficeArray).contains(postOffice.getId().toString())) {
+                        resp.setMessage("PostOffice has already completed this InternalShipping!");
+                        resp.setStatusCode(400); // Bad request
+                        return resp;
+                    }
+                }
+                internalShipping.setListPostOfficeCompleted((completedPostOffices != null ? completedPostOffices + "-" : "") + postOffice.getId() + "-");
 
                 List<Order> orders = orderRepository.findByInternalShippingDetail(internalShippingReq.getDetailId());
                 List<Order> updatedOrders = new ArrayList<>();
@@ -114,7 +129,7 @@ public class InternalShippingService {
                 }
 
                 orderRepository.saveAll(updatedOrders);
-                internalShippingRepository.save(internalShipping); // Lưu lại cập nhật của internalShipping
+                internalShippingRepository.save(internalShipping);
 
                 resp.setMessage("Orders confirmed successfully!");
                 resp.setStatusCode(200);
