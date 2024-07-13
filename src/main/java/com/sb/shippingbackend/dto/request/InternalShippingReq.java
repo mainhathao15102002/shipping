@@ -22,5 +22,5 @@ public class InternalShippingReq {
     private Integer truckId;
     private List<String> orderIdList;
     private Integer postOfficeSend;
-    private Integer postOfficeRecieve;
+    private String postOfficeList;
 }

@@ -22,6 +22,26 @@ public class InternalShippingController {
         return ResponseEntity.ok(internalShippingService.create(internalShippingReq,jwtToken));
     }
 
+    @PostMapping("/confirm")
+    public ResponseEntity<?> confirm(@RequestBody InternalShippingReq internalShippingReq,@RequestHeader("Authorization") String token) {
+        final String jwtToken;
+        if(token == null || token.isBlank()) {
+            return ResponseEntity.status(500).body(null);
+        }
+        jwtToken = token.substring(7);
+        return ResponseEntity.ok(internalShippingService.confirmOrders(internalShippingReq,jwtToken));
+    }
+
+    @PostMapping("/confirmed-stocked")
+    public ResponseEntity<?> confirmed(@RequestBody InternalShippingReq internalShippingReq,@RequestHeader("Authorization") String token) {
+        final String jwtToken;
+        if(token == null || token.isBlank()) {
+            return ResponseEntity.status(500).body(null);
+        }
+        jwtToken = token.substring(7);
+        return ResponseEntity.ok(internalShippingService.confirmOrders(internalShippingReq,jwtToken));
+    }
+
     @PostMapping("/update")
     public ResponseEntity<?> updateOrderList(@RequestBody InternalShippingReq internalShippingReq, @RequestHeader("Authorization") String token) {
         final String jwtToken;

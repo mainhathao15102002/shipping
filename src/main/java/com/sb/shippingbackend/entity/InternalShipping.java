@@ -25,15 +25,17 @@ public class InternalShipping {
     @Column(name = "ngaykhoihanh")
     private LocalDate departureDate;
 
+    @Column(name = "danhsachbuucuc")
+    private String listPostOffice;
+
+    @Column(name = "danhsachbuucucdadiqua")
+    private String listPostOfficeCompleted;
+
     @ManyToOne
     @JoinColumn(name = "mabuucucgui", referencedColumnName = "mabuucuc")
     @JsonIgnoreProperties({"employeeList", "internalShippingList"})
     private PostOffice postOfficeSend;
 
-    @ManyToOne
-    @JoinColumn(name = "mabuucucnhan", referencedColumnName = "mabuucuc")
-    @JsonIgnoreProperties({"employeeList", "internalShippingList"})
-    private PostOffice postOfficeRecieve;
 
     @OneToOne
     @JoinColumn(name = "maxe")

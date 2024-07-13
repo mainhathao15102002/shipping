@@ -44,37 +44,79 @@ public class InternalShippingService {
             Employee employee = employeeRepository.findByUserEmail(username);
             if (employee != null && employee.getPostOffice() != null) {
                 PostOffice postOfficeSend = employee.getPostOffice();
-                PostOffice postOfficeReceive = postOfficeRepository.findById(internalShippingReq.getPostOfficeRecieve())
-                        .orElseThrow(() -> new IllegalArgumentException("Post office receive not found"));
                 InternalShipping internalShipping = new InternalShipping();
                 LocalDateTime now = LocalDateTime.now();
                 internalShipping.setCreatedDate(now.toLocalDate());
                 internalShipping.setDepartureDate(internalShippingReq.getDepartureDate());
                 internalShipping.setPostOfficeSend(postOfficeSend);
-                internalShipping.setPostOfficeRecieve(postOfficeReceive);
                 Truck truck = truckRepository.findById(internalShippingReq.getTruckId()).orElseThrow(null);
                 internalShipping.setTruck(truck);
+                internalShipping.setListPostOffice(internalShippingReq.getPostOfficeList());
                 InternalShipping internalShippingResult = internalShippingRepository.save(internalShipping);
                 InternalShippingDetail internalShippingDetail = new InternalShippingDetail();
                 internalShippingDetail.setPostOffice(postOfficeSend);
                 internalShippingDetail.setInternalShipping(internalShippingResult);
                 InternalShippingDetail internalResult = internalShippingDetailRepository.save(internalShippingDetail);
-                List<String> listOrderId = internalShippingReq.getOrderIdList();
-                List<Order> orders = new ArrayList<>();
-                for (String orderId : listOrderId) {
-                    Order order = orderRepository.findById(orderId).orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
-                    if (order.getInternalShippingDetail() == null) {
-                        order.setInternalShippingDetail(internalResult);
-                        order.setStatus(OrderStatus.PREPARING);
-                        orders.add(order);
-                    } else {
-                        resp.setMessage("Order " + order.getId() + " has been in another one!");
-                        resp.setStatusCode(200);
-                        return resp;
+                if(internalShippingReq.getOrderIdList()!=null)
+                {
+                    List<String> listOrderId = internalShippingReq.getOrderIdList();
+                    List<Order> orders = new ArrayList<>();
+                    for (String orderId : listOrderId) {
+                        Order order = orderRepository.findById(orderId).orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+                        if (order.getInternalShippingDetail() == null) {
+                            order.setInternalShippingDetail(internalResult);
+                            order.setStatus(OrderStatus.PREPARING);
+                            orders.add(order);
+                        } else {
+                            resp.setMessage("Order " + order.getId() + " has been in another one!");
+                            resp.setStatusCode(200);
+                            return resp;
+                        }
+                    }
+                    orderRepository.saveAll(orders);
+                }
+                resp.setMessage("SUCCESSFUL!");
+                resp.setStatusCode(200);
+            } else {
+                resp.setStatusCode(404);
+                resp.setError("PostOffice not found for the user.");
+            }
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
+
+    @Transactional
+    public InternalShippingRes confirmOrders(InternalShippingReq internalShippingReq, String token) {
+        InternalShippingRes resp = new InternalShippingRes();
+        try {
+            String username = jwtUtil.extractUsername(token);
+            Employee employee = employeeRepository.findByUserEmail(username);
+            if (employee != null && employee.getPostOffice() != null) {
+                PostOffice postOffice = employee.getPostOffice();
+                String postOfficeCode = "#" + postOffice.getId();
+
+                InternalShipping internalShipping = internalShippingRepository.findById(internalShippingReq.getDetailId())
+                        .orElseThrow(() -> new IllegalArgumentException("InternalShipping not found: " + internalShippingReq.getDetailId()));
+                internalShipping.setListPostOfficeCompleted(internalShipping.getListPostOfficeCompleted() + "-" + postOffice.getId());
+
+                List<Order> orders = orderRepository.findByInternalShippingDetail(internalShippingReq.getDetailId());
+                List<Order> updatedOrders = new ArrayList<>();
+
+                for (Order order : orders) {
+                    if (order.getReceiverAddress() != null && order.getReceiverAddress().endsWith(postOfficeCode)) {
+                        order.setStatus(OrderStatus.STOCKED);
+                        order.setPostOffice(postOffice);
+                        updatedOrders.add(order);
                     }
                 }
-                orderRepository.saveAll(orders);
-                resp.setMessage("SUCCESSFUL!");
+
+                orderRepository.saveAll(updatedOrders);
+                internalShippingRepository.save(internalShipping); // Lưu lại cập nhật của internalShipping
+
+                resp.setMessage("Orders confirmed successfully!");
                 resp.setStatusCode(200);
             } else {
                 resp.setStatusCode(404);
@@ -95,8 +137,6 @@ public class InternalShippingService {
             Employee employee = employeeRepository.findByUserEmail(username);
             if (employee != null && employee.getPostOffice() != null) {
                 PostOffice postOfficeSend = employee.getPostOffice();
-                PostOffice postOfficeReceive = postOfficeRepository.findById(internalShippingReq.getPostOfficeRecieve())
-                        .orElseThrow(() -> new IllegalArgumentException("Post office receive not found"));
                 InternalShippingDetail internalShippingDetail = internalShippingDetailRepository.findById(internalShippingReq.getDetailId())
                         .orElseThrow(() -> new IllegalArgumentException("InternalShippingDetail not found: " + internalShippingReq.getDetailId()));
                 List<Order> existingOrders = orderRepository.findByInternalShippingDetail(internalShippingReq.getDetailId());
@@ -107,9 +147,9 @@ public class InternalShippingService {
                 orderRepository.saveAll(existingOrders);
 
                 InternalShipping internalShipping = internalShippingDetail.getInternalShipping();
+                internalShipping.setListPostOffice(internalShipping.getListPostOffice());
                 internalShipping.setDepartureDate(internalShippingReq.getDepartureDate());
                 internalShipping.setPostOfficeSend(postOfficeSend);
-                internalShipping.setPostOfficeRecieve(postOfficeReceive);
                 Truck truck = truckRepository.findById(internalShippingReq.getTruckId()).orElseThrow(null);
                 internalShipping.setTruck(truck);
                 internalShippingRepository.save(internalShipping);
