@@ -12,7 +12,7 @@ import java.util.Date;
 @Entity
 @Data
 @Table(name = "phieuvanchuyennb")
-@ToString(exclude = {"postOfficeRecieve","postOfficeSend"})
+@ToString(exclude = {"postOfficeSend","truck","internalShippingDetail"})
 public class InternalShipping {
     @Id
     @Column(name = "maphieunb")
@@ -36,11 +36,9 @@ public class InternalShipping {
     @JsonIgnoreProperties({"employeeList", "internalShippingList"})
     private PostOffice postOfficeSend;
 
-
     @OneToOne
     @JoinColumn(name = "maxe")
     private Truck truck;
-
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trangthai")

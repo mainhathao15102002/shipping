@@ -116,7 +116,12 @@ public class InternalShippingService {
                     }
                 }
                 internalShipping.setListPostOfficeCompleted((completedPostOffices != null ? completedPostOffices + "-" : "") + postOffice.getId() + "-");
-
+                String[] completedPostOfficeArray = internalShipping.getListPostOfficeCompleted().substring(0, internalShipping.getListPostOfficeCompleted().length() - 1).split("-");
+                String[] listPostOfficesArray = internalShipping.getListPostOffice().split("-");
+                if (completedPostOfficeArray.length == listPostOfficesArray.length) {
+                    internalShipping.setStatus(InternalShippingStatus.COMPLETED);
+                    internalShippingRepository.save(internalShipping);
+                }
                 List<Order> orders = orderRepository.findByInternalShippingDetail(internalShippingReq.getDetailId());
                 List<Order> updatedOrders = new ArrayList<>();
 
@@ -130,6 +135,7 @@ public class InternalShippingService {
 
                 orderRepository.saveAll(updatedOrders);
                 internalShippingRepository.save(internalShipping);
+
 
                 resp.setMessage("Orders confirmed successfully!");
                 resp.setStatusCode(200);
