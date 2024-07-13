@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
 
+import java.util.List;
+
 @Entity
 @Data
 @Table(name = "xetai")
@@ -25,9 +27,4 @@ public class Truck {
     @JoinColumn(name = "mabuucuc")
     @JsonIgnore
     private PostOffice postOffice;
-
-    @OneToOne(mappedBy = "truck")
-    @JsonIgnore
-    private InternalShipping internalShipping;
-
 }

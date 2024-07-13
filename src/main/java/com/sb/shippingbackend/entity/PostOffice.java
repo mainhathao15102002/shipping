@@ -41,9 +41,6 @@ public class PostOffice {
     @JsonIgnore
     private List<InternalShippingDetail> internalShippingList;
 
-    @OneToMany(mappedBy = "postOfficeSend")
-    @JsonIgnore
-    private List<InternalShipping> internalList;
 
     @OneToMany(mappedBy = "postOffice")
     @JsonIgnore
