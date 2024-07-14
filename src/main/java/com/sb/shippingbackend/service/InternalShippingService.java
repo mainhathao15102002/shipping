@@ -168,7 +168,7 @@ public class InternalShippingService {
                 orderRepository.saveAll(existingOrders);
 
                 InternalShipping internalShipping = internalShippingDetail.getInternalShipping();
-                internalShipping.setListPostOffice(internalShipping.getListPostOffice());
+                internalShipping.setListPostOffice(internalShippingReq.getPostOfficeList());
                 internalShipping.setDepartureDate(internalShippingReq.getDepartureDate());
                 internalShipping.setPostOfficeSend(postOfficeSend);
                 Truck truck = truckRepository.findById(internalShippingReq.getTruckId()).orElseThrow(null);

@@ -1,5 +1,6 @@
 package com.sb.shippingbackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -19,6 +20,7 @@ public class Log {
 
     @ManyToOne
     @JoinColumn(name = "mataikhoan", nullable = false)
+    @JsonIgnore
     private User user;
 
     @Column(name = "thaotac")

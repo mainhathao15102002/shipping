@@ -24,4 +24,14 @@ public class LogController {
         return ResponseEntity.ok(logService.logAction(logActionReq,jwtToken));
     }
 
+    @GetMapping("/get-all")
+    public ResponseEntity<?> getAll(@RequestHeader("Authorization") String token) {
+        final String jwtToken;
+        if(token == null || token.isBlank()) {
+            return ResponseEntity.status(500).body(null);
+        }
+        jwtToken = token.substring(7);
+        return ResponseEntity.ok(logService.getAllByPostOfficeId(jwtToken));
+    }
+
 }
