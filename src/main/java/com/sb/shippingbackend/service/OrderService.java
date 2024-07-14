@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class OrderService {
@@ -119,7 +121,14 @@ public class OrderService {
             order.setReceiveAtHome(createRequest.isReceiveAtHome());
             optionalCustomer.ifPresent(order::setCustomer);
 
-            PostOffice postOffice = postOfficeRepository.findById(createRequest.getPostOfficeId()).orElseThrow(null);
+            String receiverAddress = createRequest.getReceiverAddress();
+            Pattern pattern = Pattern.compile("#(\\d+)");
+            Matcher matcher = pattern.matcher(receiverAddress);
+            int postOfficeId = 0;
+            if (matcher.find()) {
+                postOfficeId = Integer.parseInt(matcher.group(1));
+            }
+            PostOffice postOffice = postOfficeRepository.findById(postOfficeId).orElseThrow(null);
             order.setPostOffice(postOffice);
 
             Order orderResult = orderRepository.save(order);
@@ -134,20 +143,23 @@ public class OrderService {
                 merchandise.setQuantity(item.getQuantity());
                 merchandise.setOrder(order);
                 List<ListSpecicalPropOfMerchandise> list = new ArrayList<>();
-                for(int i = 0; i < item.getList().size(); i++)
+                if(item.getList()!=null && !item.getList().isEmpty())
                 {
-                    ListSpecicalPropOfMerchandise listSpecicalPropOfMerchandise = new ListSpecicalPropOfMerchandise();
-                    PropOfMerchId propOfMerchId = new PropOfMerchId();
-                    propOfMerchId.setMerchandiseId(merchandise.getId());
-                    Integer propId = item.getList().get(i).getPropOfMerchId().getPropId();
-                    propOfMerchId.setPropId(propId);
-                    SpecialProps specialProps = specicalPropRepository.findById(propId).orElse(null);
-                    if(specialProps != null) {
-                        listSpecicalPropOfMerchandise.setPropOfMerchId(propOfMerchId);
-                        listSpecicalPropOfMerchandise.setSpecialProps(specialProps);
-                        listSpecicalPropOfMerchandise.setMerchandise(merchandise);
+                    for(int i = 0; i < item.getList().size(); i++)
+                    {
+                        ListSpecicalPropOfMerchandise listSpecicalPropOfMerchandise = new ListSpecicalPropOfMerchandise();
+                        PropOfMerchId propOfMerchId = new PropOfMerchId();
+                        propOfMerchId.setMerchandiseId(merchandise.getId());
+                        Integer propId = item.getList().get(i).getPropOfMerchId().getPropId();
+                        propOfMerchId.setPropId(propId);
+                        SpecialProps specialProps = specicalPropRepository.findById(propId).orElse(null);
+                        if(specialProps != null) {
+                            listSpecicalPropOfMerchandise.setPropOfMerchId(propOfMerchId);
+                            listSpecicalPropOfMerchandise.setSpecialProps(specialProps);
+                            listSpecicalPropOfMerchandise.setMerchandise(merchandise);
+                        }
+                        list.add(listSpecicalPropOfMerchandise);
                     }
-                    list.add(listSpecicalPropOfMerchandise);
                 }
                 merchandise.setList(list);
                 merchandisRepository.save(merchandise);

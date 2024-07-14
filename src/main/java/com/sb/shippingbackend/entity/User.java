@@ -26,6 +26,9 @@ public class User implements UserDetails {
     @Column(name = "matkhau")
     private String password;
 
+    @OneToMany(mappedBy = "user")
+    private List<Log> logs;
+
     @Column(name = "email")
     private String email;
 
