@@ -3,7 +3,9 @@ package com.sb.shippingbackend.service;
 import com.sb.shippingbackend.dto.request.PostOfficeReq;
 import com.sb.shippingbackend.dto.response.PostOfficeRes;
 import com.sb.shippingbackend.dto.response.ReqRes;
+import com.sb.shippingbackend.entity.Employee;
 import com.sb.shippingbackend.entity.PostOffice;
+import com.sb.shippingbackend.repository.EmployeeRepository;
 import com.sb.shippingbackend.repository.PostOfficeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,11 @@ public class PostService {
 
     @Autowired
     private PostOfficeRepository postOfficeRepository;
+
+    @Autowired
+    private JWTUtils jwtUtil;
+    @Autowired
+    private EmployeeRepository employeeRepository;
 
     public PostOfficeRes getAllOfficeInfo() {
         PostOfficeRes resp = new PostOfficeRes();
@@ -86,5 +93,24 @@ public class PostService {
         }
         return resp;
 
+    }
+    public PostOfficeRes getPostOfficeByToken(String token) {
+        PostOfficeRes resp = new PostOfficeRes();
+        try {
+            String username = jwtUtil.extractUsername(token);
+            Employee employee = employeeRepository.findByUserEmail(username);
+            if (employee != null && employee.getPostOffice() != null) {
+                PostOffice postOffice = employee.getPostOffice();
+                resp.setPostOffice(postOffice);
+                resp.setStatusCode(200);
+            } else {
+                resp.setStatusCode(404);
+                resp.setError("PostOffice not found for the user.");
+            }
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
     }
 }

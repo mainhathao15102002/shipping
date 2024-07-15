@@ -1,6 +1,7 @@
 package com.sb.shippingbackend.controller;
 
 
+import com.sb.shippingbackend.dto.request.InternalShippingReq;
 import com.sb.shippingbackend.dto.request.PostOfficeReq;
 import com.sb.shippingbackend.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,15 @@ public class PostOfficeController {
     public ResponseEntity<?> create(@RequestBody PostOfficeReq postOfficeReq) {
         return ResponseEntity.ok(postService.createPostOffice(postOfficeReq));
     }
-
+    @GetMapping("/get-by-user")
+    public ResponseEntity<?> create( @RequestHeader("Authorization") String token) {
+        final String jwtToken;
+        if(token == null || token.isBlank()) {
+            return ResponseEntity.status(500).body(null);
+        }
+        jwtToken = token.substring(7);
+        return ResponseEntity.ok(postService.getPostOfficeByToken(jwtToken));
+    }
 
 
     @PostMapping("/update")

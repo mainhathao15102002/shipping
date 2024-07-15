@@ -15,4 +15,5 @@ public class PostOfficeRes {
     private String message;
     private String error;
     private int statusCode;
+    private PostOffice postOffice;
 }
