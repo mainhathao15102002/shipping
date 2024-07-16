@@ -111,7 +111,7 @@ public class InternalShippingService {
                     String[] completedPostOfficeArray = completedPostOffices.split("-");
                     if (Arrays.asList(completedPostOfficeArray).contains(postOffice.getId().toString())) {
                         resp.setMessage("PostOffice has already completed this InternalShipping!");
-                        resp.setStatusCode(400); // Bad request
+                        resp.setStatusCode(400);
                         return resp;
                     }
                 }

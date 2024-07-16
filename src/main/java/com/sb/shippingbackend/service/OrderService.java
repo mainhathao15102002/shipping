@@ -122,13 +122,7 @@ public class OrderService {
             optionalCustomer.ifPresent(order::setCustomer);
 
             String receiverAddress = createRequest.getReceiverAddress();
-            Pattern pattern = Pattern.compile("#(\\d+)");
-            Matcher matcher = pattern.matcher(receiverAddress);
-            int postOfficeId = 0;
-            if (matcher.find()) {
-                postOfficeId = Integer.parseInt(matcher.group(1));
-            }
-            PostOffice postOffice = postOfficeRepository.findById(postOfficeId).orElseThrow(null);
+            PostOffice postOffice = postOfficeRepository.findById(createRequest.getPostOfficeId()).orElseThrow(null);
             order.setPostOffice(postOffice);
 
             Order orderResult = orderRepository.save(order);
