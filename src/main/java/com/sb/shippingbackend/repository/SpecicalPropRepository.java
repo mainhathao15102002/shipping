@@ -9,4 +9,7 @@ import java.util.List;
 public interface SpecicalPropRepository extends JpaRepository<SpecialProps, Integer> {
     @Query("SELECT s FROM SpecialProps s ")
     List<SpecialProps> findAllSpecialProps();
+
+    @Query("SELECT s FROM SpecialProps s WHERE s.id IN :ids")
+    List<SpecialProps> findSpecialPropsByIds(List<Integer> ids);
 }

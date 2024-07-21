@@ -1,5 +1,6 @@
 package com.sb.shippingbackend.controller;
 
+import com.sb.shippingbackend.dto.request.CalculateCostReq;
 import com.sb.shippingbackend.dto.request.CreateOrderReq;
 import com.sb.shippingbackend.dto.request.DirectPaymentReq;
 import com.sb.shippingbackend.dto.response.DirectPaymentRes;
@@ -22,6 +23,11 @@ public class OrderController {
     @PostMapping("/user/order/create")
     public ResponseEntity<ReqRes> create(@RequestBody CreateOrderReq createRequest) {
         return ResponseEntity.ok(orderService.createOrder(createRequest));
+    }
+
+    @GetMapping("/v3/order/get-cost")
+    public ResponseEntity<?> getCost(@RequestBody CalculateCostReq CalculateCostReq) {
+        return ResponseEntity.ok(orderService.calculateCost(CalculateCostReq));
     }
 
     @PostMapping("/v2/order/directPayment")

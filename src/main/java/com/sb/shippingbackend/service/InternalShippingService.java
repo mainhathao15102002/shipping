@@ -135,13 +135,11 @@ public class InternalShippingService {
 
                 orderRepository.saveAll(updatedOrders);
                 internalShippingRepository.save(internalShipping);
-
-
-                resp.setMessage("Orders confirmed successfully!");
+                resp.setMessage("Xác nhận vận đơn thành công!");
                 resp.setStatusCode(200);
             } else {
                 resp.setStatusCode(404);
-                resp.setError("PostOffice not found for the user.");
+                resp.setError("Bưu cục không tìm thấy người dùng này");
             }
         } catch (Exception e) {
             resp.setStatusCode(500);
