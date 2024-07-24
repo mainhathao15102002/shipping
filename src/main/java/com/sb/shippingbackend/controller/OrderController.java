@@ -3,16 +3,13 @@ package com.sb.shippingbackend.controller;
 import com.sb.shippingbackend.dto.request.CalculateCostReq;
 import com.sb.shippingbackend.dto.request.CreateOrderReq;
 import com.sb.shippingbackend.dto.request.DirectPaymentReq;
-import com.sb.shippingbackend.dto.response.DirectPaymentRes;
 import com.sb.shippingbackend.dto.response.ReqRes;
 import com.sb.shippingbackend.dto.request.UpdateOrderReq;
-import com.sb.shippingbackend.entity.Order;
 import com.sb.shippingbackend.service.OrderService;
+import com.sb.shippingbackend.service.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 public class OrderController {
@@ -21,8 +18,12 @@ public class OrderController {
     private OrderService orderService;
 
     @PostMapping("/user/order/create")
-    public ResponseEntity<ReqRes> create(@RequestBody CreateOrderReq createRequest) {
-        return ResponseEntity.ok(orderService.createOrder(createRequest));
+    public ResponseEntity<?> create(@RequestBody CreateOrderReq createRequest,  @RequestHeader("Authorization") String token) {
+        final String jwtToken = Utils.getToken(token);
+        if(jwtToken == null) {
+            return ResponseEntity.status(500).body("token is not valid");
+        }
+        return ResponseEntity.ok(orderService.createOrder(createRequest, jwtToken));
     }
 
     @GetMapping("/v3/order/get-cost")
@@ -36,8 +37,12 @@ public class OrderController {
     }
 
     @PutMapping("/v2/order/update")
-    public ResponseEntity<ReqRes> update(@RequestBody UpdateOrderReq updateRequest) {
-        return ResponseEntity.ok(orderService.updateStatusOrder(updateRequest));
+    public ResponseEntity<?> update(@RequestBody UpdateOrderReq updateRequest, @RequestHeader("Authorization") String token) {
+        final String jwtToken = Utils.getToken(token);
+        if(jwtToken == null) {
+            return ResponseEntity.status(500).body("token is not valid");
+        }
+        return ResponseEntity.ok(orderService.updateStatusOrder(updateRequest, jwtToken));
     }
 
     @GetMapping("/v3/order/{orderId}")
@@ -46,12 +51,11 @@ public class OrderController {
     }
 
     @GetMapping("/v2/order/get-all")
-    public ResponseEntity<List<Order>> getAllOrdersSortedByCreatedDate(@RequestHeader("Authorization") String token) {
-        final String jwtToken;
-        if(token == null || token.isBlank()) {
-            return ResponseEntity.status(500).body(null);
+    public ResponseEntity<?> getAllOrdersSortedByCreatedDate(@RequestHeader("Authorization") String token) {
+        final String jwtToken = Utils.getToken(token);
+        if(jwtToken == null) {
+            return ResponseEntity.status(500).body("token is not valid");
         }
-        jwtToken = token.substring(7);
         return ResponseEntity.ok(orderService.getAllOrder(jwtToken));
     }
 

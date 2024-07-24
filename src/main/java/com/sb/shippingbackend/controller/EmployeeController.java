@@ -1,15 +1,13 @@
 package com.sb.shippingbackend.controller;
 
-import com.sb.shippingbackend.entity.Employee;
 import com.sb.shippingbackend.service.EmployeeService;
+import com.sb.shippingbackend.service.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/v2/employee")
@@ -20,11 +18,10 @@ public class EmployeeController {
 
     @GetMapping("/get-all")
     public ResponseEntity<?> getAllEmployeesByPostOffice(@RequestHeader("Authorization") String token) {
-        final String jwtToken;
-        if(token == null || token.isBlank()) {
-            return ResponseEntity.status(500).body(null);
+        final String jwtToken = Utils.getToken(token);
+        if(jwtToken == null) {
+            return ResponseEntity.status(500).body("token is not valid");
         }
-        jwtToken = token.substring(7);
         return ResponseEntity.ok(employeeService.getAllEmployeesByPostOffice(jwtToken));
 
     }

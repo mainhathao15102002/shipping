@@ -31,16 +31,18 @@ public class CustomerShippingService {
     private EmployeeRepository employeeRepository;
     @Autowired
     private JWTUtils jwtUtil;
+    @Autowired
+    private LogService logService;
+
+    private Employee getEmployee(String token) {
+        String username = jwtUtil.extractUsername(token);
+        return employeeRepository.findByUserEmail(username);
+    }
     @Transactional
     public CustomerShippingRes create(CustomerShippingReq customerShippingReq, String token) {
         CustomerShippingRes resp = new CustomerShippingRes();
         try {
-            // Giải mã token để lấy username
-            String username = jwtUtil.extractUsername(token);
-
-            // Tìm Employee dựa trên username
-            Employee employee = employeeRepository.findByUserEmail(username);
-
+            Employee employee = getEmployee(token);
             if (employee != null && employee.getPostOffice() != null) {
                 PostOffice postOffice = employee.getPostOffice();
 
@@ -69,6 +71,7 @@ public class CustomerShippingService {
                         orderRepository.save(order);
                     }
                 }
+                logService.logAction("CREATE","CUSTOMER_SHIPPING",customerShippingResult.getId(),token);
 
                 resp.setMessage("SUCCESSFUL!");
                 resp.setStatusCode(200);
@@ -86,12 +89,7 @@ public class CustomerShippingService {
     public CustomerShippingRes update(CustomerShippingReq customerShippingReq, String token) {
         CustomerShippingRes resp = new CustomerShippingRes();
         try {
-            // Giải mã token để lấy username
-            String username = jwtUtil.extractUsername(token);
-
-            // Tìm Employee dựa trên username
-            Employee employee = employeeRepository.findByUserEmail(username);
-
+            Employee employee = getEmployee(token);
             if (employee != null && employee.getPostOffice() != null) {
                 PostOffice postOffice = employee.getPostOffice();
 
@@ -120,6 +118,7 @@ public class CustomerShippingService {
                 orderRepository.save(order);
 
                 customerShippingDetailRepository.save(customerShippingDetail);
+                logService.logAction("UPDATE","CUSTOMER_SHIPPING",customerShippingReq.getId(),token);
 
                 resp.setMessage("UPDATE SUCCESSFUL!");
                 resp.setStatusCode(200);
@@ -134,21 +133,20 @@ public class CustomerShippingService {
         return resp;
     }
     @Transactional
-    public CustomerShippingRes cancelShipping(String customerShippingId) {
+    public CustomerShippingRes cancelShipping(String customerShippingId, String token) {
         CustomerShippingRes resp = new CustomerShippingRes();
         try {
             CustomerShipping customerShipping = customerShippingRepository.findById(customerShippingId)
                     .orElseThrow(() -> new IllegalArgumentException("CustomerShipping not found: " + customerShippingId));
             customerShipping.setStatus(CustomerShippingStatus.CANCELED);
-
             List<Order> orders = orderRepository.findByCustomerShippingDetail(customerShippingId);
             for (Order order : orders) {
                 order.setStatus(OrderStatus.STOCKED);
                 order.setCustomerShippingDetail(null);
             }
-
             customerShippingRepository.save(customerShipping);
             orderRepository.saveAll(orders);
+            logService.logAction("CANCEL","CUSTOMER_SHIPPING",customerShippingId,token);
 
             resp.setMessage("Shipping canceled successfully!");
             resp.setStatusCode(200);
@@ -160,17 +158,9 @@ public class CustomerShippingService {
     }
     public CustomerShippingRes getAllByPostOfficeId(String token) {   CustomerShippingRes resp = new CustomerShippingRes();
         try {
-            // Giải mã token để lấy username
-            String username = jwtUtil.extractUsername(token);
-
-            // Tìm Employee dựa trên username
-            Employee employee = employeeRepository.findByUserEmail(username);
-
+            Employee employee = getEmployee(token);
             if (employee != null && employee.getPostOffice() != null) {
-                // Lấy PostOfficeId từ Employee
                 Integer postOfficeId = employee.getPostOffice().getId();
-
-                // Lấy danh sách CustomerShipping thuộc PostOffice
                 List<CustomerShipping> customerShippingList = customerShippingDetailRepository.findByPostOfficeId(postOfficeId);
                 resp.setCustomerShippingList(customerShippingList);
                 resp.setStatusCode(200);
@@ -185,7 +175,7 @@ public class CustomerShippingService {
         return resp;
     }
     @Transactional
-    public CustomerShippingRes confirmedCustomerShipping(String customerShippingId) {
+    public CustomerShippingRes confirmedCustomerShipping(String customerShippingId, String token) {
         CustomerShippingRes resp = new CustomerShippingRes();
         try {
             CustomerShipping customerShipping = customerShippingRepository.findById(customerShippingId)
@@ -195,7 +185,7 @@ public class CustomerShippingService {
             order.setStatus(OrderStatus.WAITING);
             customerShippingRepository.save(customerShipping);
             orderRepository.save(order);
-
+            logService.logAction("CONFIRM","CUSTOMER_SHIPPING",customerShippingId,token);
             resp.setMessage("Successful!");
             resp.setStatusCode(200);
         } catch (Exception e) {
@@ -205,7 +195,7 @@ public class CustomerShippingService {
         return resp;
     }
     @Transactional
-    public CustomerShippingRes startShipping(String customerShippingId) {
+    public CustomerShippingRes startShipping(String customerShippingId, String token) {
         CustomerShippingRes resp = new CustomerShippingRes();
         try {
             CustomerShipping customerShipping = customerShippingRepository.findById(customerShippingId)
@@ -217,9 +207,9 @@ public class CustomerShippingService {
             for (Order order : orders) {
                 order.setStatus(OrderStatus.SHIPPING);
             }
-
             customerShippingRepository.save(customerShipping);
             orderRepository.saveAll(orders);
+            logService.logAction("CONFIRM_SHIPPING","CUSTOMER_SHIPPING",customerShippingId,token);
             resp.setMessage("Shipping started successfully!");
             resp.setStatusCode(200);
         } catch (Exception e) {

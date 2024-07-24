@@ -16,19 +16,17 @@ public class BillController {
     @Autowired
     private BillService billService;
 
-
     @PostMapping("/v2/bill/deactived")
     public ResponseEntity<ReqRes> updateStatus(@RequestBody UpdateBillStatusReq updateRequest) {
         return ResponseEntity.ok(billService.updateStatus(updateRequest));
     }
-
     @GetMapping("/v3/bill/getBillByOrderId/{orderId}")
     public ResponseEntity<BillResponse> searchBillByOrderId(@PathVariable String orderId) {
         return ResponseEntity.ok(billService.findBillByOrder_Id(orderId));
     }
     @GetMapping("/v3/bill/{id}")
-    public ResponseEntity<BillResponse> searchBillById(@PathVariable String billId) {
-        return ResponseEntity.ok(billService.findBillById(billId));
+    public ResponseEntity<BillResponse> searchBillById(@PathVariable String id) {
+        return ResponseEntity.ok(billService.findBillById(id));
     }
     @GetMapping("/v3/bill/getBillByCustomerId/{customerId}")
     public ResponseEntity<?> getBillsByCustomerId(@PathVariable String customerId) {

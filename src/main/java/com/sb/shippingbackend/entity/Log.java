@@ -33,7 +33,7 @@ public class Log {
     private String table;
 
     @Column(name = "ma")
-    private Long idObject;
+    private String idObject;
 
     @PrePersist
     protected void onCreate() {

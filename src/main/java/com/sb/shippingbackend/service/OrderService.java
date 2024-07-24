@@ -61,6 +61,8 @@ public class OrderService {
     private double COST_PER_KG_OVER_4KG = 5000.0;
 
     private double COST_HIGHER_5000KG_INTRA_PROVINCIAL = 15000.0;
+    private LogRepository logRepository;
+    private LogService logService;
 
     public Double calculateCost(CalculateCostReq calculateCostReq) {
         double totalSpecPropsCost = 0.0;
@@ -96,6 +98,8 @@ public class OrderService {
 
     @Autowired
     private TotalCostRepository totalCostRepository;
+    @Autowired
+    private JWTUtils jwtUtil;
 
     @Transactional
     public DirectPaymentRes directPayment(DirectPaymentReq directPaymentReq) {
@@ -141,14 +145,16 @@ public class OrderService {
         }
         return resp;
     }
-
+    private Customer getCustomer(String token) {
+        String username = jwtUtil.extractUsername(token);
+        return customerRepository.findByUserEmail(username);
+    }
     @Transactional
-    public ReqRes createOrder(CreateOrderReq createRequest) {
+    public ReqRes createOrder(CreateOrderReq createRequest, String token) {
         ReqRes resp = new ReqRes();
         try {
             Order order = new Order();
-            Optional<Customer> optionalCustomer = customerRepository.findById(createRequest.getCustomerId());
-            ;
+            Customer customer = getCustomer(token);
             order.setReceiverName(createRequest.getReceiverName());
             order.setReceiverAddress(createRequest.getReceiverAddress());
             LocalDateTime currentDateTime = LocalDateTime.now();
@@ -160,10 +166,15 @@ public class OrderService {
             order.setReceiverPhone(createRequest.getReceiverPhone());
             order.setTotalWeight(createRequest.getTotalWeight());
             order.setReceiveAtHome(createRequest.isReceiveAtHome());
-            optionalCustomer.ifPresent(order::setCustomer);
+            order.setCustomer(customer);
 
-            String receiverAddress = createRequest.getReceiverAddress();
-            PostOffice postOffice = postOfficeRepository.findById(createRequest.getPostOfficeId()).orElseThrow(null);
+            PostOffice postOffice = createRequest.getPostOfficeId()!=null?postOfficeRepository.findById(createRequest.getPostOfficeId()).orElseThrow(null):null;
+            if(postOffice == null)
+            {
+                resp.setMessage("NOT FOUND POST OFFICE ID!");
+                resp.setStatusCode(200);
+                return resp;
+            }
             order.setPostOffice(postOffice);
 
             Order orderResult = orderRepository.save(order);
@@ -221,7 +232,7 @@ public class OrderService {
     }
 
     @Transactional
-    public ReqRes updateStatusOrder(UpdateOrderReq updateRequest) {
+    public ReqRes updateStatusOrder(UpdateOrderReq updateRequest, String token) {
         ReqRes resp = new ReqRes();
         try {
             String updatedId = updateRequest.getOrderId();
@@ -231,6 +242,7 @@ public class OrderService {
                     OrderStatus orderStatus = OrderStatus.valueOf(updateRequest.getStatus());
                     order.setStatus(orderStatus);
                     Order orderResult = orderRepository.save(order);
+                    logService.logAction("UPDATE","ORDER", orderResult.getId(), token);
                     resp.setMessage("Order status updated successfully!");
                     resp.setStatusCode(200);
                     resp.setOrder(orderResult);

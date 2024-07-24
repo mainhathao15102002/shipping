@@ -1,9 +1,9 @@
 package com.sb.shippingbackend.controller;
 
 
-import com.sb.shippingbackend.dto.request.InternalShippingReq;
 import com.sb.shippingbackend.dto.request.PostOfficeReq;
 import com.sb.shippingbackend.service.PostService;
+import com.sb.shippingbackend.service.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,11 +25,10 @@ public class PostOfficeController {
     }
     @GetMapping("/get-by-user")
     public ResponseEntity<?> create( @RequestHeader("Authorization") String token) {
-        final String jwtToken;
-        if(token == null || token.isBlank()) {
-            return ResponseEntity.status(500).body(null);
+        final String jwtToken = Utils.getToken(token);
+        if(jwtToken == null) {
+            return ResponseEntity.status(500).body("token is not valid");
         }
-        jwtToken = token.substring(7);
         return ResponseEntity.ok(postService.getPostOfficeByToken(jwtToken));
     }
 

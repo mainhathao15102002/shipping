@@ -43,7 +43,7 @@ public class BillService {
     public List<BillResponse> getAllBills() {
         List<Bill> bills = billRepository.findAll();
         return bills.stream()
-                .sorted((b1, b2) -> b2.getCreatedDate().compareTo(b1.getCreatedDate())) // Sort by createdDate descending
+                .sorted((b1, b2) -> b2.getCreatedDate().compareTo(b1.getCreatedDate()))
                 .map(bill -> {
                     BillResponse resp = new BillResponse();
                     resp.setBillId(bill.getId());

@@ -6,12 +6,10 @@ import com.sb.shippingbackend.dto.request.SignUpAuthReq;
 import com.sb.shippingbackend.dto.request.VerificationSignUpReq;
 import com.sb.shippingbackend.dto.response.ReqRes;
 import com.sb.shippingbackend.service.AuthService;
+import com.sb.shippingbackend.service.Utils;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -32,11 +30,10 @@ public class AuthController {
 
     @PostMapping("admin/signup-employee")
     public ResponseEntity<?> signUpEmployee(@RequestBody SignUpAuthReq registrationRequest,@RequestHeader("Authorization") String token) {
-        final String jwtToken;
-        if(token == null || token.isBlank()) {
-            return ResponseEntity.status(500).body(null);
+        final String jwtToken = Utils.getToken(token);
+        if(jwtToken == null) {
+            return ResponseEntity.status(500).body("token is not valid");
         }
-        jwtToken = token.substring(7);
         return ResponseEntity.ok(authService.signUpAdminAccount(registrationRequest,jwtToken));
     }
 
@@ -59,7 +56,6 @@ public class AuthController {
     @PostMapping("/checkTokenExpiry")
     public ResponseEntity<?> checkTokenExpiry(HttpServletRequest request) {
         final String authHeader = request.getHeader("Authorization");
-
         if(authHeader == null || authHeader.isBlank()) {
             return ResponseEntity.status(500).body("NOT VALID TOKEN");
         }

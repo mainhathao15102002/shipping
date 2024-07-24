@@ -1,5 +1,6 @@
 package com.sb.shippingbackend.controller;
 
+import com.sb.shippingbackend.service.Utils;
 import com.sb.shippingbackend.service.TruckService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,11 +18,10 @@ public class TruckController {
 
     @GetMapping("/get-all")
     public ResponseEntity<?> getAll(@RequestHeader("Authorization") String token) {
-        final String jwtToken;
-        if(token == null || token.isBlank()) {
-            return ResponseEntity.status(500).body(null);
+        final String jwtToken = Utils.getToken(token);
+        if(jwtToken == null) {
+            return ResponseEntity.status(500).body("token is not valid");
         }
-        jwtToken = token.substring(7);
         return ResponseEntity.ok(truckService.getAll(jwtToken));
     }
 }

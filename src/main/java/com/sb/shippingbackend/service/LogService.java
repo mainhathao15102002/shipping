@@ -30,32 +30,21 @@ public class LogService {
     @Autowired
     private EmployeeRepository employeeRepository;
 
-
-    public LogActionRes logAction(LogActionReq logActionReq, String token) {
-        LogActionRes resp = new LogActionRes();
+    public void logAction(String action, String table, String idObject, String token) {
         try {
             String email = jwtUtil.extractUsername(token);
             User user = userRepository.findByEmail(email).orElseThrow(null);
-            if(user == null) {
-                resp.setMessage("ERROR!");
-                resp.setStatusCode(400);
-                return resp;
-            }
             Log log = new Log();
             log.setUser(user);
-            log.setAction(logActionReq.getAction());
-            log.setTable(logActionReq.getTable());
-            log.setIdObject(logActionReq.getIdObject());
+            log.setAction(action);
+            log.setTable(table);
+            log.setIdObject(idObject);
             logRepository.save(log);
-
-            resp.setMessage("Recorded!");
-            resp.setStatusCode(200);
         } catch (Exception e) {
-            resp.setStatusCode(500);
-            resp.setError(e.getMessage());
+            throw new RuntimeException("Error logging action: " + e.getMessage(), e);
         }
-        return resp;
     }
+
     @Transactional(readOnly = true)
     public LogActionRes getAllByPostOfficeId(String token) {
         LogActionRes resp = new LogActionRes();

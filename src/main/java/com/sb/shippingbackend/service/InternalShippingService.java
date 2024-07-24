@@ -36,13 +36,14 @@ public class InternalShippingService {
 
     @Autowired
     private TruckRepository truckRepository;
+    @Autowired
+    private LogService logService;
 
     @Transactional
     public InternalShippingRes create(InternalShippingReq internalShippingReq, String token) {
         InternalShippingRes resp = new InternalShippingRes();
         try {
-            String username = jwtUtil.extractUsername(token);
-            Employee employee = employeeRepository.findByUserEmail(username);
+            Employee employee = getEmployee(token);
             if (employee != null && employee.getPostOffice() != null) {
                 PostOffice postOfficeSend = employee.getPostOffice();
                 InternalShipping internalShipping = new InternalShipping();
@@ -76,6 +77,7 @@ public class InternalShippingService {
                     }
                     orderRepository.saveAll(orders);
                 }
+                logService.logAction("CREATE","INTERNAL_SHIPPING", internalShippingResult.getId(), token);
                 resp.setMessage("SUCCESSFUL!");
                 resp.setStatusCode(200);
             } else {
@@ -93,8 +95,7 @@ public class InternalShippingService {
     public InternalShippingRes confirmOrders(InternalShippingReq internalShippingReq, String token) {
         InternalShippingRes resp = new InternalShippingRes();
         try {
-            String username = jwtUtil.extractUsername(token);
-            Employee employee = employeeRepository.findByUserEmail(username);
+            Employee employee = getEmployee(token);
             if (employee != null && employee.getPostOffice() != null) {
                 PostOffice postOffice = employee.getPostOffice();
                 String postOfficeCode = "#" + postOffice.getId();
@@ -135,6 +136,7 @@ public class InternalShippingService {
 
                 orderRepository.saveAll(updatedOrders);
                 internalShippingRepository.save(internalShipping);
+                logService.logAction("CONFIRM_ORDER","INTERNAL_SHIPPING", internalShippingReq.getDetailId(),token);
                 resp.setMessage("Xác nhận vận đơn thành công!");
                 resp.setStatusCode(200);
             } else {
@@ -152,8 +154,7 @@ public class InternalShippingService {
     public InternalShippingRes update(InternalShippingReq internalShippingReq, String token) {
         InternalShippingRes resp = new InternalShippingRes();
         try {
-            String username = jwtUtil.extractUsername(token);
-            Employee employee = employeeRepository.findByUserEmail(username);
+            Employee employee = getEmployee(token);
             if (employee != null && employee.getPostOffice() != null) {
                 PostOffice postOfficeSend = employee.getPostOffice();
                 InternalShippingDetail internalShippingDetail = internalShippingDetailRepository.findById(internalShippingReq.getDetailId())
@@ -184,7 +185,7 @@ public class InternalShippingService {
                 }
                 orderRepository.saveAll(orders);
                 internalShippingDetailRepository.save(internalShippingDetail);
-
+                logService.logAction("UPDATE","INTERNAL_SHIPPING", internalShippingReq.getDetailId(),token);
                 resp.setMessage("UPDATE SUCCESSFUL!");
                 resp.setStatusCode(200);
             } else {
@@ -198,12 +199,16 @@ public class InternalShippingService {
         return resp;
     }
 
+    private Employee getEmployee(String token) {
+        String username = jwtUtil.extractUsername(token);
+        return employeeRepository.findByUserEmail(username);
+    }
+
     @Transactional(readOnly = true)
     public InternalShippingRes getAllByPostOfficeId(String token) {
         InternalShippingRes resp = new InternalShippingRes();
         try {
-            String username = jwtUtil.extractUsername(token);
-            Employee employee = employeeRepository.findByUserEmail(username);
+            Employee employee = getEmployee(token);
             if (employee != null && employee.getPostOffice() != null) {
                 Integer postOfficeId = employee.getPostOffice().getId();
                 List<InternalShipping> internalShippingList = internalShippingDetailRepository.findByPostOfficeId(postOfficeId);
@@ -221,7 +226,7 @@ public class InternalShippingService {
         return resp;
     }
     @Transactional
-    public InternalShippingRes startTransporting(String internalShippingId) {
+    public InternalShippingRes startTransporting(String internalShippingId,String token) {
         InternalShippingRes resp = new InternalShippingRes();
         try {
             InternalShipping internalShipping = internalShippingRepository.findById(internalShippingId)
@@ -235,7 +240,7 @@ public class InternalShippingService {
 
             internalShippingRepository.save(internalShipping);
             orderRepository.saveAll(orders);
-
+            logService.logAction("CONFIRM_SHIPPING","INTERNAL_SHIPPING", internalShippingId, token);
             resp.setMessage("Transporting started successfully!");
             resp.setStatusCode(200);
         } catch (Exception e) {
@@ -245,7 +250,7 @@ public class InternalShippingService {
         return resp;
     }
     @Transactional
-    public InternalShippingRes cancelShipping(String internalShippingId) {
+    public InternalShippingRes cancelShipping(String internalShippingId, String token) {
         InternalShippingRes resp = new InternalShippingRes();
         try {
             InternalShipping internalShipping = internalShippingRepository.findById(internalShippingId)
@@ -259,6 +264,7 @@ public class InternalShippingService {
             }
             internalShippingRepository.save(internalShipping);
             orderRepository.saveAll(orders);
+            logService.logAction("CANCEL", "INTERNAL_SHIPPING", internalShippingId, token);
             resp.setMessage("Shipping canceled successfully!");
             resp.setStatusCode(200);
         } catch (Exception e) {
