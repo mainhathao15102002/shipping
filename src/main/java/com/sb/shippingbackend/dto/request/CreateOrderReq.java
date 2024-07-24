@@ -25,4 +25,6 @@ public class CreateOrderReq {
     private List<Merchandise> merchandiseList;
     private Integer postOfficeId;
     private boolean receiveAtHome;
+    private boolean receiveAtPostOffice;
+
 }

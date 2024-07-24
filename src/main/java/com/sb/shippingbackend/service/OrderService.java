@@ -166,6 +166,7 @@ public class OrderService {
             order.setReceiverPhone(createRequest.getReceiverPhone());
             order.setTotalWeight(createRequest.getTotalWeight());
             order.setReceiveAtHome(createRequest.isReceiveAtHome());
+            order.setReceiveAtHome(createRequest.isReceiveAtPostOffice());
             order.setCustomer(customer);
 
             PostOffice postOffice = createRequest.getPostOfficeId()!=null?postOfficeRepository.findById(createRequest.getPostOfficeId()).orElseThrow(null):null;

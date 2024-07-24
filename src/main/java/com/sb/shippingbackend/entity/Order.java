@@ -44,6 +44,9 @@ public class Order {
     @Column(name = "nhanhangtainha")
     private Boolean receiveAtHome;
 
+    @Column(name = "nhanhangtaibuucuc")
+    private Boolean receiveAtPostOffice;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "trangthai")
     private OrderStatus status = OrderStatus.PENDING;;
