@@ -65,34 +65,38 @@ public class OrderService {
     private LogService logService;
 
     public Double calculateCost(CalculateCostReq calculateCostReq) {
-        double totalSpecPropsCost = 0.0;
-        if(!calculateCostReq.getSpecialProps().isEmpty())
-        {
-            List<SpecialProps> specialPropList = specicalPropRepository.findSpecialPropsByIds(calculateCostReq.getSpecialProps());
-            for (SpecialProps prop : specialPropList) {
-                totalSpecPropsCost += prop.getPostage();
+        try {
+            double totalSpecPropsCost = 0.0;
+            if(!calculateCostReq.getSpecialProps().isEmpty())
+            {
+                List<SpecialProps> specialPropList = specicalPropRepository.findSpecialPropsByIds(calculateCostReq.getSpecialProps());
+                for (SpecialProps prop : specialPropList) {
+                    totalSpecPropsCost += prop.getPostage();
+                }
             }
-        }
-        double totalweight = calculateCostReq.getTotalWeight();
-        if (!calculateCostReq.isIntraProvincial()) {
-            double distance = calculateCostReq.getDistance();
-            double COST_PER_KM = 0.0;
-            if (distance >= 40 && distance < 100) {
-                COST_PER_KM = PERCENT_0KM_100KM;
-            } else if (distance >= 100 && distance < 500) {
-                COST_PER_KM = PERCENT_100KM_500KM;
-            } else if (distance >= 500 && distance < 1000) {
-                COST_PER_KM = PERCENT_500KM_1000KM;
+            double totalweight = calculateCostReq.getTotalWeight();
+            if (!calculateCostReq.isIntraProvincial()) {
+                double distance = calculateCostReq.getDistance();
+                double COST_PER_KM = 0.0;
+                if (distance >= 40 && distance < 100) {
+                    COST_PER_KM = PERCENT_0KM_100KM;
+                } else if (distance >= 100 && distance < 500) {
+                    COST_PER_KM = PERCENT_100KM_500KM;
+                } else if (distance >= 500 && distance < 1000) {
+                    COST_PER_KM = PERCENT_500KM_1000KM;
+                } else {
+                    COST_PER_KM = PERCENT_1000KM_HIGHER;
+                }
+                double COST_PER_KG = totalweight < 1000 ? 0 : totalweight / 1000 * BASE_COST_PER_KG;
+                return BASE_COST_KM + (BASE_COST_KM * COST_PER_KM) / 100 + COST_PER_KG + totalSpecPropsCost;
             } else {
-                COST_PER_KM = PERCENT_1000KM_HIGHER;
+                if (totalweight >= 4000) {
+                    return COST_HIGHER_5000KG_INTRA_PROVINCIAL + totalweight / 1000 - 4000 * COST_PER_KG_OVER_4KG + totalSpecPropsCost;
+                }
+                return COST_HIGHER_5000KG_INTRA_PROVINCIAL;
             }
-            double COST_PER_KG = totalweight < 1000 ? 0 : totalweight / 1000 * BASE_COST_PER_KG;
-            return BASE_COST_KM + (BASE_COST_KM * COST_PER_KM) / 100 + COST_PER_KG + totalSpecPropsCost;
-        } else {
-            if (totalweight >= 4000) {
-                return COST_HIGHER_5000KG_INTRA_PROVINCIAL + totalweight / 1000 - 4000 * COST_PER_KG_OVER_4KG + totalSpecPropsCost;
-            }
-            return COST_HIGHER_5000KG_INTRA_PROVINCIAL;
+        }catch (Exception e) {
+            return 0.0;
         }
     }
 

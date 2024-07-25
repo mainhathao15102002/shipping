@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 public class OrderController {
 
@@ -26,10 +28,7 @@ public class OrderController {
         return ResponseEntity.ok(orderService.createOrder(createRequest, jwtToken));
     }
 
-    @GetMapping("/v3/order/get-cost")
-    public ResponseEntity<?> getCost(@RequestBody CalculateCostReq CalculateCostReq) {
-        return ResponseEntity.ok(orderService.calculateCost(CalculateCostReq));
-    }
+
 
     @PostMapping("/v2/order/directPayment")
     public ResponseEntity<?> directPayment(@RequestBody DirectPaymentReq directPaymentReq) {
@@ -43,6 +42,22 @@ public class OrderController {
             return ResponseEntity.status(500).body("token is not valid");
         }
         return ResponseEntity.ok(orderService.updateStatusOrder(updateRequest, jwtToken));
+    }
+    @GetMapping("/v3/order/get-cost")
+    public ResponseEntity<?> getCost(
+            @RequestParam Double totalWeight,
+            @RequestParam Double distance,
+            @RequestParam List<Integer> specialProps,
+            @RequestParam boolean isIntraProvincial) {
+
+        CalculateCostReq calculateCostReq = new CalculateCostReq();
+        calculateCostReq.setTotalWeight(totalWeight);
+        calculateCostReq.setDistance(distance);
+        calculateCostReq.setSpecialProps(specialProps);
+        calculateCostReq.setIntraProvincial(isIntraProvincial);
+
+        Double cost = orderService.calculateCost(calculateCostReq);
+        return ResponseEntity.ok(cost);
     }
 
     @GetMapping("/v3/order/{orderId}")
