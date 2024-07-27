@@ -48,6 +48,7 @@ public class OrderController {
             @RequestParam Double totalWeight,
             @RequestParam Double distance,
             @RequestParam List<Integer> specialProps,
+            @RequestParam int estimatedDeliveryTime,
             @RequestParam boolean isIntraProvincial) {
 
         CalculateCostReq calculateCostReq = new CalculateCostReq();
@@ -55,9 +56,8 @@ public class OrderController {
         calculateCostReq.setDistance(distance);
         calculateCostReq.setSpecialProps(specialProps);
         calculateCostReq.setIntraProvincial(isIntraProvincial);
-
-        Double cost = orderService.calculateCost(calculateCostReq);
-        return ResponseEntity.ok(cost);
+        calculateCostReq.setEstimatedDeliveryTime(estimatedDeliveryTime);
+        return ResponseEntity.ok(orderService.calculateCost(calculateCostReq));
     }
 
     @GetMapping("/v3/order/{orderId}")

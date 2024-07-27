@@ -10,6 +10,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CalculateCostReq {
+    private int estimatedDeliveryTime;
     private Double totalWeight;
     private Double distance;
     private List<Integer> specialProps;

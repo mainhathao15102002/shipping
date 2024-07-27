@@ -3,6 +3,7 @@ package com.sb.shippingbackend.service;
 import com.sb.shippingbackend.dto.request.CalculateCostReq;
 import com.sb.shippingbackend.dto.request.CreateOrderReq;
 import com.sb.shippingbackend.dto.request.DirectPaymentReq;
+import com.sb.shippingbackend.dto.response.CalculateCostRes;
 import com.sb.shippingbackend.dto.response.DirectPaymentRes;
 import com.sb.shippingbackend.dto.response.ReqRes;
 import com.sb.shippingbackend.dto.request.UpdateOrderReq;
@@ -64,7 +65,12 @@ public class OrderService {
     private LogRepository logRepository;
     private LogService logService;
 
-    public Double calculateCost(CalculateCostReq calculateCostReq) {
+    public static double roundToHalf(double d) {
+        return Math.round(d * 2) / 2.0;
+    }
+
+    public CalculateCostRes calculateCost(CalculateCostReq calculateCostReq) {
+        CalculateCostRes calculateCostRes = new CalculateCostRes();
         try {
             double totalSpecPropsCost = 0.0;
             if(!calculateCostReq.getSpecialProps().isEmpty())
@@ -74,29 +80,44 @@ public class OrderService {
                     totalSpecPropsCost += prop.getPostage();
                 }
             }
-            double totalweight = calculateCostReq.getTotalWeight();
+            double totalWeight = calculateCostReq.getTotalWeight();
             if (!calculateCostReq.isIntraProvincial()) {
                 double distance = calculateCostReq.getDistance();
+                double estimatedDeliveryTime1 = calculateCostReq.getEstimatedDeliveryTime();
+                double estimatedDeliveryTime = roundToHalf(estimatedDeliveryTime1 > 0 ? estimatedDeliveryTime1 / 24 : 0) ;
                 double COST_PER_KM = 0.0;
-                if (distance >= 40 && distance < 100) {
+                if (distance < 100) {
                     COST_PER_KM = PERCENT_0KM_100KM;
+                    estimatedDeliveryTime += 1;
                 } else if (distance >= 100 && distance < 500) {
                     COST_PER_KM = PERCENT_100KM_500KM;
+                    estimatedDeliveryTime += 2;
                 } else if (distance >= 500 && distance < 1000) {
                     COST_PER_KM = PERCENT_500KM_1000KM;
+                    estimatedDeliveryTime += 4;
                 } else {
                     COST_PER_KM = PERCENT_1000KM_HIGHER;
+                    estimatedDeliveryTime += 6;
                 }
-                double COST_PER_KG = totalweight < 1000 ? 0 : totalweight / 1000 * BASE_COST_PER_KG;
-                return BASE_COST_KM + (BASE_COST_KM * COST_PER_KM) / 100 + COST_PER_KG + totalSpecPropsCost;
+                double COST_PER_KG = totalWeight < 1000 ? 0 : totalWeight / 1000 * BASE_COST_PER_KG;
+                calculateCostRes.setCost(BASE_COST_KM + (BASE_COST_KM * COST_PER_KM) / 100 + COST_PER_KG + totalSpecPropsCost);
+                calculateCostRes.setEstimatedDeliveryTime(estimatedDeliveryTime);
             } else {
-                if (totalweight >= 4000) {
-                    return COST_HIGHER_5000KG_INTRA_PROVINCIAL + totalweight / 1000 - 4000 * COST_PER_KG_OVER_4KG + totalSpecPropsCost;
+                double estimatedDeliveryTime = 1;
+                double cost = 0.0;
+                if (totalWeight >= 4000) {
+                    cost= COST_HIGHER_5000KG_INTRA_PROVINCIAL + totalWeight / 1000 - 4000 * COST_PER_KG_OVER_4KG + totalSpecPropsCost;
                 }
-                return COST_HIGHER_5000KG_INTRA_PROVINCIAL;
+                else {
+                    cost = COST_HIGHER_5000KG_INTRA_PROVINCIAL + totalSpecPropsCost;
+                }
+                calculateCostRes.setCost(cost);
+                calculateCostRes.setEstimatedDeliveryTime(estimatedDeliveryTime);
             }
+            return calculateCostRes;
         }catch (Exception e) {
-            return 0.0;
+            calculateCostRes.setError(e.getMessage());
+            return calculateCostRes;
         }
     }
 
