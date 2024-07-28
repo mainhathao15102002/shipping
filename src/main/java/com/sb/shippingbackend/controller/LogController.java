@@ -13,12 +13,12 @@ public class LogController {
     private LogService logService;
 
     @GetMapping("/get-all")
-    public ResponseEntity<?> getAll(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> getAll(@RequestParam(required = false)  String table,@RequestParam(required = false)  String id ,@RequestHeader("Authorization") String token) {
         final String jwtToken = Utils.getToken(token);
         if(jwtToken == null) {
             return ResponseEntity.status(500).body("token is not valid");
         }
-        return ResponseEntity.ok(logService.getAllByPostOfficeId(jwtToken));
+        return ResponseEntity.ok(logService.getAllByPostOfficeId(jwtToken,table, id));
     }
 
 }

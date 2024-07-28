@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class LogService {
@@ -46,7 +47,7 @@ public class LogService {
     }
 
     @Transactional(readOnly = true)
-    public LogActionRes getAllByPostOfficeId(String token) {
+    public LogActionRes getAllByPostOfficeId(String token,String table, String id) {
         LogActionRes resp = new LogActionRes();
         try {
             String username = jwtUtil.extractUsername(token);
@@ -54,6 +55,17 @@ public class LogService {
             if (employee != null && employee.getPostOffice() != null) {
                 Integer postOfficeId = employee.getPostOffice().getId();
                 List<Log> logList = logRepository.findByPostOfficeId(postOfficeId);
+                if (table != null && !table.isEmpty()) {
+                    logList = logList.stream()
+                            .filter(log -> table.equals(log.getTable()))
+                            .collect(Collectors.toList());
+                }
+
+                if (id != null && !id.isEmpty()) {
+                    logList = logList.stream()
+                            .filter(log -> id.equals(log.getIdObject()))
+                            .collect(Collectors.toList());
+                }
                 resp.setLogList(logList);
                 resp.setMessage("SUCCESSFUL!");
                 resp.setStatusCode(200);

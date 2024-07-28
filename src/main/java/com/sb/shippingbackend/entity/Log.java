@@ -1,6 +1,7 @@
 package com.sb.shippingbackend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,8 +21,9 @@ public class Log {
 
     @ManyToOne
     @JoinColumn(name = "mataikhoan", nullable = false)
-    @JsonIgnore
+    @JsonIgnoreProperties({"id", "password","logs","role","tokenList","authorities","enabled","username","accountNonExpired","credentialsNonExpired","accountNonLocked"})
     private User user;
+
 
     @Column(name = "thaotac")
     private String action;
