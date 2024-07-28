@@ -1,9 +1,6 @@
 package com.sb.shippingbackend.service;
 
-import com.sb.shippingbackend.dto.request.RefreshTokenAuthReq;
-import com.sb.shippingbackend.dto.request.SignInAuthReq;
-import com.sb.shippingbackend.dto.request.SignUpAuthReq;
-import com.sb.shippingbackend.dto.request.VerificationSignUpReq;
+import com.sb.shippingbackend.dto.request.*;
 import com.sb.shippingbackend.dto.response.ReqRes;
 import com.sb.shippingbackend.entity.*;
 import com.sb.shippingbackend.repository.*;
@@ -22,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -80,6 +78,97 @@ public class AuthService {
 //    @CacheEvict(value = "tempRegistrations", key = "#email")
 //    public void evictCachedRegistrationRequest(String email) {
 //    }
+    @Transactional
+    public ReqRes resetPassword(ResetPasswordReq resetPasswordReq)
+    {
+        ReqRes resp = new ReqRes();
+        try {
+            if (userRepository.existsByEmail(resetPasswordReq.getEmail())) {
+                int verificationCode = emailService.generateVerificationCode();
+                emailService.sendVerificationCode(resetPasswordReq.getEmail(), verificationCode);
+                TempRegistration tempRegistration = new TempRegistration();
+                tempRegistration.setEmail(resetPasswordReq.getEmail());
+                tempRegistration.setPassword(passwordEncoder.encode(resetPasswordReq.getPassword()));
+                tempRegistration.setVerificationCode(verificationCode);
+                TempRegistration result = tempRegistrationRepository.save(tempRegistration);
+                resp.setIdVerification(result.getId());
+                resp.setMessage("Verification code sent to email!");
+                resp.setStatusCode(200);
+            }
+            else {
+                resp.setMessage("Email is not exists!");
+                resp.setStatusCode(400);
+                return resp;
+            }
+
+        }
+        catch (Exception e)
+        {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+            throw e;
+        }
+        return resp;
+    }
+    @Transactional
+    public ReqRes verifyOnResetRequest(VerificationSignUpReq verificationSignUpReq) {
+        ReqRes resp = new ReqRes();
+        try {
+            String id = verificationSignUpReq.getId();
+            int code = verificationSignUpReq.getCode();
+            TempRegistration tempRegistration = tempRegistrationRepository.findById(id).orElseThrow(null);
+
+            if (tempRegistration == null) {
+                resp.setMessage("No verify found for this email!");
+                resp.setStatusCode(404);
+                return resp;
+            }
+            if (tempRegistration.getVerificationCode() != code || code == 0) {
+                resp.setMessage("Invalid verification code!");
+                resp.setStatusCode(400);
+                return resp;
+            }
+            User user = userRepository.findByEmail(tempRegistration.getEmail()).orElseThrow(null);
+            user.setPassword(tempRegistration.getPassword());
+            User userResult = userRepository.save(user);
+
+            if (userResult.getId() > 0) {
+                resp.setMessage("Successful!");
+                resp.setStatusCode(200);
+                tempRegistrationRepository.deleteById(id);
+            }
+
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+            throw e;
+        }
+        return resp;
+    }
+
+    @Transactional
+    public ReqRes changePassword(ChangePswdReq changePswdReq, String token){
+        ReqRes resp = new ReqRes();
+        try {
+            String username = jwtUtils.extractUsername(token);
+            User user = userRepository.findByEmail(username)
+                    .orElseThrow(() -> new Exception("User not found"));
+
+            if (passwordEncoder.matches(changePswdReq.getOldPassword(), user.getPassword())) {
+                user.setPassword(passwordEncoder.encode(changePswdReq.getNewPassword()));
+                userRepository.save(user);
+                resp.setMessage("Password changed successfully!");
+                resp.setStatusCode(200);
+            } else {
+                resp.setMessage("Incorrect old password!");
+                resp.setStatusCode(400);
+            }
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
 
     @Transactional
     public ReqRes signUp(SignUpAuthReq registrationRequest) {
@@ -96,7 +185,7 @@ public class AuthService {
             TempRegistration tempRegistration = new TempRegistration();
             tempRegistration.setEmail(registrationRequest.getEmail());
             tempRegistration.setRole(registrationRequest.getRole());
-            tempRegistration.setPassword(registrationRequest.getPassword());
+            tempRegistration.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
             if (registrationRequest.getTaxCode() == null) {
                 tempRegistration.setIdCode(registrationRequest.getIdCode());
             } else {
@@ -174,7 +263,7 @@ public class AuthService {
 
             User user = new User();
             user.setEmail(tempRegistration.getEmail());
-            user.setPassword(passwordEncoder.encode(tempRegistration.getPassword()));
+            user.setPassword(tempRegistration.getPassword());
             user.setRole(tempRegistration.getRole());
             User userResult = userRepository.save(user);
 
@@ -282,6 +371,4 @@ public class AuthService {
         }
         return jwtUtils.isTokenValid(token, userDetails);
     }
-
-
 }

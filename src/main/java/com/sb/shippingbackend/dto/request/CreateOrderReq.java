@@ -22,6 +22,7 @@ public class CreateOrderReq {
     private Double totalCost;
     private int quantity;
     private String customerId;
+    private double estimatedDeliveryDate;
     private List<Merchandise> merchandiseList;
     private Integer postOfficeId;
     private boolean receiveAtHome;

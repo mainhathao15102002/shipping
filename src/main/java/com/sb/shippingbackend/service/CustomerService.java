@@ -87,7 +87,6 @@ public class CustomerService {
                 customer.setName(updateRequest.getName());
                 customer.setPhoneNumber(updateRequest.getPhoneNumber());
                 Customer updatedCustomer = customerRepository.save(customer);
-
                 resp.setMessage("Customer updated successfully!");
                 resp.setStatusCode(200);
                 resp.setName(updatedCustomer.getName());
@@ -120,7 +119,6 @@ public class CustomerService {
         }
         return resp;
     }
-
     public ReqRes findCustomerById(String customerId) {
         ReqRes resp = new ReqRes();
         try {

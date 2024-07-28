@@ -42,14 +42,17 @@ public class Order {
     private String deliverMethod;
 
     @Column(name = "nhanhangtainha")
-    private Boolean receiveAtHome;
+    private Boolean receiveAtHome = true;
 
     @Column(name = "nhanhangtaibuucuc")
-    private Boolean receiveAtPostOffice;
+    private Boolean receiveAtPostOffice = false;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trangthai")
     private OrderStatus status = OrderStatus.PENDING;;
+
+    @Column(name = "ngaydukiengiao")
+    private LocalDate estimatedDeliveryDate;
 
     @ManyToOne
     @JoinColumn(name = "ma")

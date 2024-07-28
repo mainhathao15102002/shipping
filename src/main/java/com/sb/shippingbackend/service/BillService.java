@@ -55,8 +55,6 @@ public class BillService {
                 }).collect(Collectors.toList());
     }
 
-
-
     public List<BillResponse> getBillsByCustomerId(String customerId) {
         List<Bill> bills = billRepository.findAllByCustomerId(customerId);
         return bills.stream().map(bill -> {

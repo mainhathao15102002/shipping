@@ -1,9 +1,6 @@
 package com.sb.shippingbackend.controller;
 
-import com.sb.shippingbackend.dto.request.RefreshTokenAuthReq;
-import com.sb.shippingbackend.dto.request.SignInAuthReq;
-import com.sb.shippingbackend.dto.request.SignUpAuthReq;
-import com.sb.shippingbackend.dto.request.VerificationSignUpReq;
+import com.sb.shippingbackend.dto.request.*;
 import com.sb.shippingbackend.dto.response.ReqRes;
 import com.sb.shippingbackend.service.AuthService;
 import com.sb.shippingbackend.service.Utils;
@@ -41,6 +38,25 @@ public class AuthController {
     @PostMapping("/verify")
     public ReqRes verify(@RequestBody VerificationSignUpReq verificationRequest) {
         return authService.verifyAndRegister(verificationRequest);
+    }
+
+    @PostMapping("/reset-pswd")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordReq resetPasswordReq) {
+        return ResponseEntity.ok(authService.resetPassword(resetPasswordReq));
+    }
+
+    @PutMapping("/verify-reset-pswd")
+    public ResponseEntity<?> verifyResetPassword(@RequestBody VerificationSignUpReq verificationSignUpReq) {
+        return ResponseEntity.ok(authService.verifyOnResetRequest(verificationSignUpReq));
+    }
+
+    @PutMapping("/v3/change-pswd")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePswdReq changePswdReq,@RequestHeader("Authorization") String token) {
+        final String jwtToken = Utils.getToken(token);
+        if(jwtToken == null) {
+            return ResponseEntity.status(500).body("token is not valid");
+        }
+        return ResponseEntity.ok(authService.changePassword(changePswdReq, jwtToken));
     }
 
     @PostMapping("/signin")

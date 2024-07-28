@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -42,6 +43,12 @@ public class OrderService {
     private SpecicalPropRepository specicalPropRepository;
 
     @Autowired
+    private LogRepository logRepository;
+
+    @Autowired
+    private LogService logService;
+
+    @Autowired
     private CustomerRepository customerRepository;
 
     @Autowired
@@ -62,8 +69,6 @@ public class OrderService {
     private double COST_PER_KG_OVER_4KG = 5000.0;
 
     private double COST_HIGHER_5000KG_INTRA_PROVINCIAL = 15000.0;
-    private LogRepository logRepository;
-    private LogService logService;
 
     public static double roundToHalf(double d) {
         return Math.round(d * 2) / 2.0;
@@ -73,8 +78,7 @@ public class OrderService {
         CalculateCostRes calculateCostRes = new CalculateCostRes();
         try {
             double totalSpecPropsCost = 0.0;
-            if(!calculateCostReq.getSpecialProps().isEmpty())
-            {
+            if (!calculateCostReq.getSpecialProps().isEmpty()) {
                 List<SpecialProps> specialPropList = specicalPropRepository.findSpecialPropsByIds(calculateCostReq.getSpecialProps());
                 for (SpecialProps prop : specialPropList) {
                     totalSpecPropsCost += prop.getPostage();
@@ -84,7 +88,7 @@ public class OrderService {
             if (!calculateCostReq.isIntraProvincial()) {
                 double distance = calculateCostReq.getDistance();
                 double estimatedDeliveryTime1 = calculateCostReq.getEstimatedDeliveryTime();
-                double estimatedDeliveryTime = roundToHalf(estimatedDeliveryTime1 > 0 ? estimatedDeliveryTime1 / 24 : 0) ;
+                double estimatedDeliveryTime = roundToHalf(estimatedDeliveryTime1 > 0 ? estimatedDeliveryTime1 / 24 : 0);
                 double COST_PER_KM = 0.0;
                 if (distance < 100) {
                     COST_PER_KM = PERCENT_0KM_100KM;
@@ -106,16 +110,15 @@ public class OrderService {
                 double estimatedDeliveryTime = 1;
                 double cost = 0.0;
                 if (totalWeight >= 4000) {
-                    cost= COST_HIGHER_5000KG_INTRA_PROVINCIAL + totalWeight / 1000 - 4000 * COST_PER_KG_OVER_4KG + totalSpecPropsCost;
-                }
-                else {
+                    cost = COST_HIGHER_5000KG_INTRA_PROVINCIAL + totalWeight / 1000 - 4000 * COST_PER_KG_OVER_4KG + totalSpecPropsCost;
+                } else {
                     cost = COST_HIGHER_5000KG_INTRA_PROVINCIAL + totalSpecPropsCost;
                 }
                 calculateCostRes.setCost(cost);
                 calculateCostRes.setEstimatedDeliveryTime(estimatedDeliveryTime);
             }
             return calculateCostRes;
-        }catch (Exception e) {
+        } catch (Exception e) {
             calculateCostRes.setError(e.getMessage());
             return calculateCostRes;
         }
@@ -170,10 +173,12 @@ public class OrderService {
         }
         return resp;
     }
+
     private Customer getCustomer(String token) {
         String username = jwtUtil.extractUsername(token);
         return customerRepository.findByUserEmail(username);
     }
+
     @Transactional
     public ReqRes createOrder(CreateOrderReq createRequest, String token) {
         ReqRes resp = new ReqRes();
@@ -192,11 +197,12 @@ public class OrderService {
             order.setTotalWeight(createRequest.getTotalWeight());
             order.setReceiveAtHome(createRequest.isReceiveAtHome());
             order.setReceiveAtHome(createRequest.isReceiveAtPostOffice());
+            LocalDate today = LocalDate.now();
+            order.setEstimatedDeliveryDate(today.plusDays((long)createRequest.getEstimatedDeliveryDate()));
             order.setCustomer(customer);
 
-            PostOffice postOffice = createRequest.getPostOfficeId()!=null?postOfficeRepository.findById(createRequest.getPostOfficeId()).orElseThrow(null):null;
-            if(postOffice == null)
-            {
+            PostOffice postOffice = createRequest.getPostOfficeId() != null ? postOfficeRepository.findById(createRequest.getPostOfficeId()).orElseThrow(null) : null;
+            if (postOffice == null) {
                 resp.setMessage("NOT FOUND POST OFFICE ID!");
                 resp.setStatusCode(200);
                 return resp;
@@ -256,7 +262,6 @@ public class OrderService {
         }
         return resp;
     }
-
     @Transactional
     public ReqRes updateStatusOrder(UpdateOrderReq updateRequest, String token) {
         ReqRes resp = new ReqRes();
@@ -266,9 +271,14 @@ public class OrderService {
                 Order order = orderRepository.findById(updatedId).orElseThrow(null);
                 if (order != null) {
                     OrderStatus orderStatus = OrderStatus.valueOf(updateRequest.getStatus());
+                    if(orderStatus == OrderStatus.CONFIRMED) {
+                        LocalDate today = LocalDate.now();
+                        long daysBetween = ChronoUnit.DAYS.between(order.getCreatedDate(),order.getEstimatedDeliveryDate());
+                        order.setEstimatedDeliveryDate(today.plusDays(daysBetween));
+                    }
                     order.setStatus(orderStatus);
                     Order orderResult = orderRepository.save(order);
-                    logService.logAction("UPDATE","ORDER", orderResult.getId(), token);
+                    logService.logAction("UPDATE", "ORDER", orderResult.getId(), token);
                     resp.setMessage("Order status updated successfully!");
                     resp.setStatusCode(200);
                     resp.setOrder(orderResult);
