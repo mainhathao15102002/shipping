@@ -28,7 +28,8 @@ public class InternalShippingDetail {
     private InternalShipping internalShipping;
 
     @Column(name = "ngaygionhapkho")
-    private Date warehouseDate;
+    private String warehouseDate;
+
 
     @ManyToOne
     @JoinColumn(name = "mabuucuc", nullable = false)

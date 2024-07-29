@@ -1,6 +1,7 @@
 package com.sb.shippingbackend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -69,7 +70,7 @@ public class Order {
     private TotalCost totalCost;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
+    @JsonIgnoreProperties({"order", "list"})
     private List<Merchandise> merchandiseList;
 
     @ManyToOne

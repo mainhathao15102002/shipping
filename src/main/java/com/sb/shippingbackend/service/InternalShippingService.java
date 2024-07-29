@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -102,6 +103,7 @@ public class InternalShippingService {
 
                 InternalShipping internalShipping = internalShippingRepository.findById(internalShippingReq.getDetailId())
                         .orElseThrow(() -> new IllegalArgumentException("InternalShipping not found: " + internalShippingReq.getDetailId()));
+                InternalShippingDetail internalShippingDetail = internalShippingDetailRepository.findById(internalShippingReq.getDetailId()).orElseThrow(null);
 
                 String completedPostOffices = internalShipping.getListPostOfficeCompleted();
                 if (completedPostOffices != null && completedPostOffices.endsWith("-")) {
@@ -132,6 +134,17 @@ public class InternalShippingService {
                         order.setPostOffice(postOffice);
                         updatedOrders.add(order);
                     }
+                }
+                LocalDateTime now = LocalDateTime.now();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+                String formattedNow = now.format(formatter);
+                if(internalShippingDetail.getWarehouseDate()!=null)
+                {
+                    internalShippingDetail.setWarehouseDate(internalShippingDetail.getWarehouseDate()+" - "+formattedNow);
+                }
+                else {
+                    internalShippingDetail.setWarehouseDate(formattedNow);
+
                 }
 
                 orderRepository.saveAll(updatedOrders);
