@@ -65,4 +65,8 @@ public class CustomerShippingController {
         }
         return ResponseEntity.ok(customerShippingService.confirmedCustomerShipping(customerShippingId, jwtToken));
     }
+    @PutMapping("/completed/{id}")
+    public ResponseEntity<?> confirmed(@PathVariable String id) {
+        return ResponseEntity.ok(customerShippingService.completeOrder(id));
+    }
 }

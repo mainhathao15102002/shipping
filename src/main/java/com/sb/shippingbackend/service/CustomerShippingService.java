@@ -4,6 +4,7 @@ import com.sb.shippingbackend.dto.request.CustomerShippingReq;
 import com.sb.shippingbackend.dto.request.InternalShippingReq;
 import com.sb.shippingbackend.dto.response.CustomerShippingRes;
 import com.sb.shippingbackend.dto.response.InternalShippingRes;
+import com.sb.shippingbackend.dto.response.ReqRes;
 import com.sb.shippingbackend.entity.*;
 import com.sb.shippingbackend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,7 @@ public class CustomerShippingService {
         String username = jwtUtil.extractUsername(token);
         return employeeRepository.findByUserEmail(username);
     }
+
     @Transactional
     public CustomerShippingRes create(CustomerShippingReq customerShippingReq, String token) {
         CustomerShippingRes resp = new CustomerShippingRes();
@@ -49,7 +51,6 @@ public class CustomerShippingService {
                 CustomerShipping customerShipping = new CustomerShipping();
                 LocalDateTime now = LocalDateTime.now();
                 customerShipping.setCreatedDate(now.toLocalDate());
-                customerShipping.setLicensePlate(customerShippingReq.getLicensePlates());
                 CustomerShipping customerShippingResult = customerShippingRepository.save(customerShipping);
 
                 CustomerShippingDetail customerShippingDetail = new CustomerShippingDetail();
@@ -71,7 +72,7 @@ public class CustomerShippingService {
                         orderRepository.save(order);
                     }
                 }
-                logService.logAction("CREATE","CUSTOMER_SHIPPING",customerShippingResult.getId(),token);
+                logService.logAction("CREATE", "CUSTOMER_SHIPPING", customerShippingResult.getId(), token);
 
                 resp.setMessage("SUCCESSFUL!");
                 resp.setStatusCode(200);
@@ -85,6 +86,7 @@ public class CustomerShippingService {
         }
         return resp;
     }
+
     @Transactional
     public CustomerShippingRes update(CustomerShippingReq customerShippingReq, String token) {
         CustomerShippingRes resp = new CustomerShippingRes();
@@ -118,7 +120,7 @@ public class CustomerShippingService {
                 orderRepository.save(order);
 
                 customerShippingDetailRepository.save(customerShippingDetail);
-                logService.logAction("UPDATE","CUSTOMER_SHIPPING",customerShippingReq.getId(),token);
+                logService.logAction("UPDATE", "CUSTOMER_SHIPPING", customerShippingReq.getId(), token);
 
                 resp.setMessage("UPDATE SUCCESSFUL!");
                 resp.setStatusCode(200);
@@ -132,6 +134,7 @@ public class CustomerShippingService {
         }
         return resp;
     }
+
     @Transactional
     public CustomerShippingRes cancelShipping(String customerShippingId, String token) {
         CustomerShippingRes resp = new CustomerShippingRes();
@@ -146,7 +149,7 @@ public class CustomerShippingService {
             }
             customerShippingRepository.save(customerShipping);
             orderRepository.saveAll(orders);
-            logService.logAction("CANCEL","CUSTOMER_SHIPPING",customerShippingId,token);
+            logService.logAction("CANCEL", "CUSTOMER_SHIPPING", customerShippingId, token);
 
             resp.setMessage("Shipping canceled successfully!");
             resp.setStatusCode(200);
@@ -156,7 +159,9 @@ public class CustomerShippingService {
         }
         return resp;
     }
-    public CustomerShippingRes getAllByPostOfficeId(String token) {   CustomerShippingRes resp = new CustomerShippingRes();
+
+    public CustomerShippingRes getAllByPostOfficeId(String token) {
+        CustomerShippingRes resp = new CustomerShippingRes();
         try {
             Employee employee = getEmployee(token);
             if (employee != null && employee.getPostOffice() != null) {
@@ -174,6 +179,7 @@ public class CustomerShippingService {
         }
         return resp;
     }
+
     @Transactional
     public CustomerShippingRes confirmedCustomerShipping(String customerShippingId, String token) {
         CustomerShippingRes resp = new CustomerShippingRes();
@@ -185,7 +191,7 @@ public class CustomerShippingService {
             order.setStatus(OrderStatus.WAITING);
             customerShippingRepository.save(customerShipping);
             orderRepository.save(order);
-            logService.logAction("CONFIRM","CUSTOMER_SHIPPING",customerShippingId,token);
+            logService.logAction("CONFIRM", "CUSTOMER_SHIPPING", customerShippingId, token);
             resp.setMessage("Successful!");
             resp.setStatusCode(200);
         } catch (Exception e) {
@@ -194,22 +200,45 @@ public class CustomerShippingService {
         }
         return resp;
     }
+
+    @Transactional
+    public ReqRes completeOrder(String id) {
+        ReqRes resp = new ReqRes();
+        try {
+            CustomerShipping customerShipping = customerShippingRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Customer Shipping Id not found: " + id));
+            customerShipping.setStatus(CustomerShippingStatus.COMPLETED);
+            List<Order> orders = orderRepository.findByCustomerShippingDetail(id);
+            for (Order order : orders) {
+                order.setStatus(OrderStatus.COMPLETED);
+            }
+            resp.setMessage("Shipping Completed!");
+            resp.setStatusCode(200);
+
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+
+    }
+
     @Transactional
     public CustomerShippingRes startShipping(String customerShippingId, String token) {
         CustomerShippingRes resp = new CustomerShippingRes();
         try {
+            Employee employee = getEmployee(token);
             CustomerShipping customerShipping = customerShippingRepository.findById(customerShippingId)
                     .orElseThrow(() -> new IllegalArgumentException("Customer Shipping Id not found: " + customerShippingId));
             customerShipping.setStatus(CustomerShippingStatus.SHIPPING);
-            LocalDateTime now = LocalDateTime.now();
-            customerShipping.setEstimatedDate(LocalDate.from(now.plusDays(3)));
+            customerShipping.setLicensePlate(employee.getUser().getEmail());
             List<Order> orders = orderRepository.findByCustomerShippingDetail(customerShippingId);
             for (Order order : orders) {
                 order.setStatus(OrderStatus.SHIPPING);
             }
             customerShippingRepository.save(customerShipping);
             orderRepository.saveAll(orders);
-            logService.logAction("CONFIRM_SHIPPING","CUSTOMER_SHIPPING",customerShippingId,token);
+            logService.logAction("CONFIRM_SHIPPING", "CUSTOMER_SHIPPING", customerShippingId, token);
             resp.setMessage("Shipping started successfully!");
             resp.setStatusCode(200);
         } catch (Exception e) {

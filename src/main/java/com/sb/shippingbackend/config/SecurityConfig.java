@@ -57,7 +57,7 @@ public class SecurityConfig {
                         .requestMatchers("/user/**").hasAnyAuthority("USER")
                         .requestMatchers("auth/v3/**").hasAnyAuthority("USER","ADMIN","EMPLOYEE")
                         .requestMatchers("/v3/**").hasAnyAuthority("USER","ADMIN","EMPLOYEE")
-                        .requestMatchers("/v2/**").hasAnyAuthority("ADMIN","EMPLOYEE")
+                        .requestMatchers("/v2/**").hasAnyAuthority("ADMIN","EMPLOYEE","DRIVER")
                         .anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider()).addFilterBefore(
