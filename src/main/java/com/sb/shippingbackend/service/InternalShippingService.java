@@ -140,7 +140,7 @@ public class InternalShippingService {
                 String formattedNow = now.format(formatter);
                 if(internalShippingDetail.getWarehouseDate()!=null)
                 {
-                    internalShippingDetail.setWarehouseDate(internalShippingDetail.getWarehouseDate()+" - "+formattedNow);
+                    internalShippingDetail.setWarehouseDate(internalShippingDetail.getWarehouseDate()+","+formattedNow);
                 }
                 else {
                     internalShippingDetail.setWarehouseDate(formattedNow);
