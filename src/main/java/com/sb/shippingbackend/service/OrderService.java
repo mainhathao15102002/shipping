@@ -133,11 +133,11 @@ public class OrderService {
             if (tmp != null) {
                 Optional<Order> order = orderRepository.findById(tmp.getOrderId());
                 LocalDateTime currentDateTime = LocalDateTime.now();
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                 String formattedDateTime = currentDateTime.format(formatter);
                 Bill bill = new Bill();
                 bill.setId(tmp.getId());
-                bill.setCreatedDate(LocalDate.parse(formattedDateTime));
+                bill.setCreatedDate(LocalDateTime.parse(formattedDateTime));
                 bill.setBillStatus(true);
                 Bill billResult = billRepository.save(bill);
                 if (!billResult.getId().isEmpty()) {
@@ -396,6 +396,50 @@ public class OrderService {
             resp.setStatusCode(500);
             resp.setError(e.getMessage());
         }
+        return resp;
+    }
+    @Transactional
+    public DirectPaymentRes paymentOnline(String vnp_PayDate,String vnp_TxnRef, String vnp_Amount, String vnp_ResponseCode)
+    {
+        DirectPaymentRes resp = new DirectPaymentRes();
+        try {
+            if(vnp_ResponseCode.equals("00")) {
+
+                DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+                LocalDateTime dateTime = LocalDateTime.parse(vnp_PayDate, formatter1);
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                Bill bill = new Bill();
+                bill.setCreatedDate(dateTime);
+                bill.setBillStatus(true);
+                Bill billResult = billRepository.save(bill);
+                if (!billResult.getId().isEmpty()) {
+                    TotalCostId totalCostId = new TotalCostId(vnp_TxnRef, billResult.getId());
+                    TotalCost totalCost = new TotalCost();
+                    totalCost.setId(totalCostId);
+                    totalCost.setTotalCost(Double.valueOf(vnp_Amount));
+                    Optional<Order> order = orderRepository.findById(vnp_TxnRef);
+                    order.ifPresent(totalCost::setOrder);
+                    totalCost.setBill(bill);
+                    totalCostRepository.save(totalCost);
+                    resp.setBillId(billResult.getId());
+                    resp.setCreatedDate(billResult.getCreatedDate().format(formatter));
+                    resp.setTotalCost(totalCost.getTotalCost());
+                    resp.setBillStatus(billResult.isBillStatus() ? "PAID" : "INACTIVE");
+                    resp.setOrderId(billResult.getId());
+                    resp.setMessage("COMPLETED PAYMENT!");
+                    resp.setStatusCode(200);
+
+                }
+            }
+            else {
+                resp.setMessage("FAILED PAYMENT!");
+                resp.setStatusCode(200);
+            }
+       }catch (Exception e)
+       {
+           resp.setStatusCode(500);
+           resp.setError(e.getMessage());
+       }
         return resp;
     }
 }

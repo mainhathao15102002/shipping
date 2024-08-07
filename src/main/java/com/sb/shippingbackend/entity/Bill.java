@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.ToString;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -13,11 +14,12 @@ import java.time.LocalDate;
 @ToString(exclude = {"totalcost"})
 public class Bill {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "mahoadon")
     private String id;
 
     @Column(name = "ngaylap")
-    private LocalDate createdDate;
+    private LocalDateTime createdDate;
 
     @Column(name = "trangthai")
     private boolean billStatus;

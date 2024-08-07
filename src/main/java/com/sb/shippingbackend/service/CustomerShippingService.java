@@ -207,11 +207,18 @@ public class CustomerShippingService {
         try {
             CustomerShipping customerShipping = customerShippingRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Customer Shipping Id not found: " + id));
+            CustomerShippingDetail customerShippingDetail = customerShippingDetailRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Customer Shipping Detail Id not found: " + id));
             customerShipping.setStatus(CustomerShippingStatus.COMPLETED);
+            LocalDate now = LocalDate.now();
+            customerShippingDetail.setCompletedDate(now);
+
             List<Order> orders = orderRepository.findByCustomerShippingDetail(id);
             for (Order order : orders) {
                 order.setStatus(OrderStatus.COMPLETED);
             }
+            customerShippingRepository.save(customerShipping);
+            customerShippingDetailRepository.save(customerShippingDetail);
             resp.setMessage("Shipping Completed!");
             resp.setStatusCode(200);
 

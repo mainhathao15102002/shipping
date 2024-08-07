@@ -37,6 +37,9 @@ public class Log {
     @Column(name = "ma")
     private String idObject;
 
+    @Column(name = "dulieu")
+    private String data;
+
     @PrePersist
     protected void onCreate() {
         actionDateTime = LocalDateTime.now();

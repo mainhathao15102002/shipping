@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -12,7 +13,7 @@ import java.time.LocalDate;
 public class BillResponse {
     private String billId;
     private String billStatus;
-    private LocalDate createdDate;
+    private LocalDateTime createdDate;
     private Double totalCost;
     private String orderId;
 }

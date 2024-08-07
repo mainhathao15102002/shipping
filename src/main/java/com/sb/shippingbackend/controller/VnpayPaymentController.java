@@ -2,10 +2,13 @@ package com.sb.shippingbackend.controller;
 
 import com.sb.shippingbackend.config.VnpayConfig;
 import com.sb.shippingbackend.dto.response.PaymentVNPRes;
+import com.sb.shippingbackend.service.OrderService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.UnsupportedEncodingException;
@@ -15,16 +18,21 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 @RestController
-@RequestMapping("/v3/vnpay")
+@RequestMapping("/api/vnpay")
 public class VnpayPaymentController {
-    @GetMapping("create_payment")
-    public ResponseEntity<?> createPayment() throws UnsupportedEncodingException {
+    private final OrderService orderService;
+
+    public VnpayPaymentController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    @GetMapping("/create_payment")
+    public ResponseEntity<?> createPayment(HttpServletRequest request,@RequestParam long amount, @RequestParam String orderId) throws UnsupportedEncodingException {
 
 //        long amount = Integer.parseInt(req.getParameter("amount"))*100;
 //        String bankCode = req.getParameter("bankCode");
-        long amount = 1000000;
-        String vnp_TxnRef = VnpayConfig.getRandomNumber(8);
-//        String vnp_IpAddr = VnpayConfig.getIpAddress(req);
+        long amountResult = amount *100;
+        String vnp_IpAddr = VnpayConfig.getIpAddress(request);
 
         String vnp_TmnCode = VnpayConfig.vnp_TmnCode;
 
@@ -32,12 +40,15 @@ public class VnpayPaymentController {
         vnp_Params.put("vnp_Version", VnpayConfig.vnp_Version);
         vnp_Params.put("vnp_Command", VnpayConfig.vnp_Command);
         vnp_Params.put("vnp_TmnCode", vnp_TmnCode);
-        vnp_Params.put("vnp_Amount", String.valueOf(amount));
+        vnp_Params.put("vnp_Amount", String.valueOf(amountResult));
         vnp_Params.put("vnp_CurrCode", "VND");
         vnp_Params.put("vnp_BankCode", "NCB");
-        vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
-        vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang:" + vnp_TxnRef);
+        vnp_Params.put("vnp_TxnRef", orderId);
+        vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang:" + orderId );
+        vnp_Params.put("vnp_OrderType", "other");
         vnp_Params.put("vnp_Locale", "vn");
+        vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
+        vnp_Params.put("vnp_ReturnUrl",VnpayConfig.vnp_ReturnUrl);
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         String vnp_CreateDate = formatter.format(cld.getTime());
@@ -85,5 +96,18 @@ public class VnpayPaymentController {
         Gson gson = new Gson();
         resp.getWriter().write(gson.toJson(job));*/
         return ResponseEntity.status(HttpStatus.OK).body(paymentVNPRes);
+    }
+
+    @GetMapping("/payment_infor")
+    public ResponseEntity<?> transaction(@RequestParam String vnp_Amount,
+                                         @RequestParam String vnp_BankCode,
+                                         @RequestParam String vnp_OrderInfo,
+                                         @RequestParam String vnp_PayDate,
+                                         @RequestParam String vnp_ResponseCode,
+                                         @RequestParam String vnp_TxnRef
+                                         )
+    {
+
+        return ResponseEntity.ok(orderService.paymentOnline(vnp_PayDate,vnp_TxnRef,vnp_Amount,vnp_ResponseCode));
     }
 }
