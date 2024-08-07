@@ -28,6 +28,14 @@ public class OrderController {
         return ResponseEntity.ok(orderService.createOrder(createRequest, jwtToken));
     }
 
+    @GetMapping("/v2/order/post-offices/{internalShippingId}")
+    public ResponseEntity<?> getOrdersForPostOffices(@PathVariable String internalShippingId, @RequestHeader("Authorization") String token) {
+        final String jwtToken = Utils.getToken(token);
+        if(jwtToken == null) {
+            return ResponseEntity.status(500).body("token is not valid");
+        }
+        return ResponseEntity.ok(orderService.getOrdersForPostOffices(internalShippingId, jwtToken));
+    }
 
 
     @PostMapping("/v2/order/directPayment")

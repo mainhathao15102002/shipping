@@ -3,6 +3,7 @@ import com.sb.shippingbackend.entity.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface OrderRepository extends JpaRepository<Order, String> {
@@ -26,4 +27,6 @@ public interface OrderRepository extends JpaRepository<Order, String> {
 
     @Query("SELECT o FROM Order o WHERE o.postOffice.id = :postOffice_id")
     List<Order> findByPostOfficeId(Integer postOffice_id);
+
+    List<Order> findByPostOfficeIdIn(Collection<Integer> postOffice_id);
 }

@@ -1,12 +1,9 @@
 package com.sb.shippingbackend.service;
 
-import com.sb.shippingbackend.dto.request.CalculateCostReq;
-import com.sb.shippingbackend.dto.request.CreateOrderReq;
-import com.sb.shippingbackend.dto.request.DirectPaymentReq;
+import com.sb.shippingbackend.dto.request.*;
 import com.sb.shippingbackend.dto.response.CalculateCostRes;
 import com.sb.shippingbackend.dto.response.DirectPaymentRes;
 import com.sb.shippingbackend.dto.response.ReqRes;
-import com.sb.shippingbackend.dto.request.UpdateOrderReq;
 import com.sb.shippingbackend.entity.*;
 import com.sb.shippingbackend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +15,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
@@ -64,11 +60,11 @@ public class OrderService {
     private double PERCENT_100KM_500KM = 32.0;
     private double PERCENT_500KM_1000KM = 46.0;
     private double PERCENT_1000KM_HIGHER = 52.0;
-
     private double BASE_COST_PER_KG = 9500.0;
     private double COST_PER_KG_OVER_4KG = 5000.0;
-
     private double COST_HIGHER_5000KG_INTRA_PROVINCIAL = 15000.0;
+    @Autowired
+    private InternalShippingRepository internalShippingRepository;
 
     public static double roundToHalf(double d) {
         return Math.round(d * 2) / 2.0;
@@ -333,6 +329,67 @@ public class OrderService {
                 resp.setStatusCode(200);
             } else {
                 resp.setMessage("Order not found!");
+                resp.setStatusCode(404);
+            }
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
+
+    public ReqRes updateCostVariables(UpdateCostReq updateCostReq) {
+        ReqRes resp = new ReqRes();
+        try {
+            this.BASE_COST_KM = updateCostReq.getBaseCostKm()==0.0?this.BASE_COST_KM:updateCostReq.getBaseCostKm();
+            this.PERCENT_0KM_100KM = updateCostReq.getPercent0km100km()==0.0?this.PERCENT_0KM_100KM:updateCostReq.getPercent0km100km();
+            this.PERCENT_100KM_500KM = updateCostReq.getPercent100km500km()==0.0?this.PERCENT_100KM_500KM:updateCostReq.getPercent100km500km();
+            this.PERCENT_500KM_1000KM = updateCostReq.getPercent500km1000km()==0.0?this.PERCENT_500KM_1000KM:updateCostReq.getPercent500km1000km();
+            this.PERCENT_1000KM_HIGHER = updateCostReq.getPercent1000kmHigher()==0.0?this.PERCENT_1000KM_HIGHER:updateCostReq.getPercent1000kmHigher();
+            this.BASE_COST_PER_KG = updateCostReq.getBaseCostPerKg()==0.0?this.BASE_COST_PER_KG:updateCostReq.getBaseCostPerKg();
+            this.COST_PER_KG_OVER_4KG = updateCostReq.getCostPerKgOver4kg()==0.0?this.COST_PER_KG_OVER_4KG:updateCostReq.getCostPerKgOver4kg();
+            this.COST_HIGHER_5000KG_INTRA_PROVINCIAL = updateCostReq.getCostHigher5000kgIntraProvincial()==0.0?this.COST_HIGHER_5000KG_INTRA_PROVINCIAL:updateCostReq.getCostHigher5000kgIntraProvincial();
+            resp.setMessage("Cost variables updated successfully!");
+            resp.setStatusCode(200);
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
+    @Transactional
+    public ReqRes getOrdersForPostOffices(String internalShippingId, String token) {
+        ReqRes resp = new ReqRes();
+        try {
+
+            InternalShipping internalShipping = internalShippingRepository.findById(internalShippingId)
+                    .orElseThrow(() -> new RuntimeException("InternalShipping not found"));
+            String username = jwtUtils.extractUsername(token);
+            PostOffice postOffice = postOfficeRepository.findByUsername(username);
+
+            String listPostOffice = internalShipping.getListPostOffice();
+            String listPostOfficeCompleted = internalShipping.getListPostOfficeCompleted();
+
+            List<Integer> postOfficeIds = Arrays.stream(listPostOffice.split("-"))
+                    .map(Integer::parseInt)
+                    .collect(Collectors.toList());
+
+            List<Integer> postOfficeIdsCompleted = new ArrayList<>((listPostOfficeCompleted != null && !listPostOfficeCompleted.isEmpty()) ?
+                    Arrays.stream(listPostOfficeCompleted.split("-"))
+                            .map(Integer::parseInt)
+                            .toList() : Collections.emptyList());
+
+            postOfficeIdsCompleted.add(postOffice.getId());
+
+            postOfficeIds.removeAll(postOfficeIdsCompleted);
+
+            List<Order> orders = orderRepository.findByPostOfficeIdIn(postOfficeIds);
+            if (orders != null && !orders.isEmpty()) {
+                resp.setOrderList(orders);
+                resp.setMessage("Orders found successfully!");
+                resp.setStatusCode(200);
+            } else {
+                resp.setMessage("No orders found!");
                 resp.setStatusCode(404);
             }
         } catch (Exception e) {
