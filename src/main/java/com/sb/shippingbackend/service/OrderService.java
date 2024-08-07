@@ -383,7 +383,7 @@ public class OrderService {
 
             postOfficeIds.removeAll(postOfficeIdsCompleted);
 
-            List<Order> orders = orderRepository.findByPostOfficeIdIn(postOfficeIds);
+            List<Order> orders = orderRepository.findByPostOfficeIdInAndStatus(postOfficeIds, OrderStatus.CONFIRMED);
             if (orders != null && !orders.isEmpty()) {
                 resp.setOrderList(orders);
                 resp.setMessage("Orders found successfully!");
