@@ -69,4 +69,13 @@ public class CustomerShippingController {
     public ResponseEntity<?> confirmed(@PathVariable String id) {
         return ResponseEntity.ok(customerShippingService.completeOrder(id));
     }
+    @GetMapping("/get-by-username")
+    public ResponseEntity<?> getCustomerShippingByLicensePlate(
+            @RequestHeader("Authorization") String token) {
+        final String jwtToken = Utils.getToken(token);
+        if(jwtToken == null) {
+            return ResponseEntity.status(500).body("token is not valid");
+        }
+        return ResponseEntity.ok(customerShippingService.getCustomerShippingByToken(jwtToken));
+    }
 }

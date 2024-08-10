@@ -258,6 +258,89 @@ public class OrderService {
         }
         return resp;
     }
+
+    @Transactional
+    public ReqRes createOrders(List<CreateOrderReq> createRequests, String token) {
+        ReqRes resp = new ReqRes();
+        List<Order> createdOrders = new ArrayList<>();
+        List<Temp_bill> tempBills = new ArrayList<>();
+        try {
+            for (CreateOrderReq createRequest : createRequests) {
+                Order order = new Order();
+                Customer customer = getCustomer(token);
+                order.setReceiverName(createRequest.getReceiverName());
+                order.setReceiverAddress(createRequest.getReceiverAddress());
+                LocalDateTime currentDateTime = LocalDateTime.now();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                String formattedDateTime = currentDateTime.format(formatter);
+                order.setCreatedDate(LocalDate.parse(formattedDateTime));
+                order.setNote(createRequest.getNote());
+                order.setDeliverMethod(createRequest.getDeliverMethod());
+                order.setReceiverPhone(createRequest.getReceiverPhone());
+                order.setTotalWeight(createRequest.getTotalWeight());
+                order.setReceiveAtHome(createRequest.isReceiveAtHome());
+                order.setReceiveAtPostOffice(createRequest.isReceiveAtPostOffice());
+                LocalDate today = LocalDate.now();
+                order.setEstimatedDeliveryDate(today.plusDays((long) createRequest.getEstimatedDeliveryDate()));
+                order.setCustomer(customer);
+
+                PostOffice postOffice = createRequest.getPostOfficeId() != null ? postOfficeRepository.findById(createRequest.getPostOfficeId()).orElseThrow(null) : null;
+                if (postOffice == null) {
+                    resp.setMessage("NOT FOUND POST OFFICE ID!");
+                    resp.setStatusCode(200);
+                    return resp;
+                }
+                order.setPostOffice(postOffice);
+
+                Order orderResult = orderRepository.save(order);
+                createRequest.getMerchandiseList().forEach((item) -> {
+                    Merchandise merchandise = new Merchandise();
+                    merchandise.setDesc(item.getDesc());
+                    merchandise.setSize(item.getSize());
+                    merchandise.setValue(item.getValue());
+                    merchandise.setWeight(item.getWeight());
+                    merchandise.setImageUrl(item.getImageUrl());
+                    merchandise.setQuantity(item.getQuantity());
+                    merchandise.setOrder(order);
+                    List<ListSpecicalPropOfMerchandise> list = new ArrayList<>();
+                    if (item.getList() != null && !item.getList().isEmpty()) {
+                        for (int i = 0; i < item.getList().size(); i++) {
+                            ListSpecicalPropOfMerchandise listSpecicalPropOfMerchandise = new ListSpecicalPropOfMerchandise();
+                            PropOfMerchId propOfMerchId = new PropOfMerchId();
+                            propOfMerchId.setMerchandiseId(merchandise.getId());
+                            Integer propId = item.getList().get(i).getPropOfMerchId().getPropId();
+                            propOfMerchId.setPropId(propId);
+                            SpecialProps specialProps = specicalPropRepository.findById(propId).orElse(null);
+                            if (specialProps != null) {
+                                listSpecicalPropOfMerchandise.setPropOfMerchId(propOfMerchId);
+                                listSpecicalPropOfMerchandise.setSpecialProps(specialProps);
+                                listSpecicalPropOfMerchandise.setMerchandise(merchandise);
+                            }
+                            list.add(listSpecicalPropOfMerchandise);
+                        }
+                    }
+                    merchandise.setList(list);
+                    merchandisRepository.save(merchandise);
+                    listPropOfMerchRepository.saveAll(list);
+                });
+
+                Temp_bill bill = new Temp_bill();
+                bill.setTotalCost(createRequest.getTotalCost());
+                bill.setCreatedDate(LocalDate.parse(formattedDateTime));
+                bill.setOrderId(order.getId());
+                tempBills.add(bill);
+                createdOrders.add(orderResult);
+            }
+            tmpBillRepository.saveAll(tempBills);
+            orderRepository.saveAll(createdOrders);
+            resp.setMessage("Successful!");
+            resp.setStatusCode(200);
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
     @Transactional
     public ReqRes updateStatusOrder(UpdateOrderReq updateRequest, String token) {
         ReqRes resp = new ReqRes();
@@ -416,7 +499,7 @@ public class OrderService {
                     TotalCostId totalCostId = new TotalCostId(vnp_TxnRef, billResult.getId());
                     TotalCost totalCost = new TotalCost();
                     totalCost.setId(totalCostId);
-                    totalCost.setTotalCost(Double.valueOf(vnp_Amount));
+                    totalCost.setTotalCost(Double.valueOf(vnp_Amount)/100);
                     Optional<Order> order = orderRepository.findById(vnp_TxnRef);
                     order.ifPresent(totalCost::setOrder);
                     totalCost.setBill(bill);

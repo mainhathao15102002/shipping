@@ -254,4 +254,26 @@ public class CustomerShippingService {
         }
         return resp;
     }
+
+    @Transactional
+    public CustomerShippingRes getCustomerShippingByToken(String token) {
+        CustomerShippingRes resp = new CustomerShippingRes();
+        try {
+            Employee employee = getEmployee(token);
+            String username = jwtUtil.extractUsername(token);
+            if (employee != null && employee.getPostOffice() != null) {
+                List<CustomerShipping> customerShippingList = customerShippingRepository.findByLicensePlate(username);
+                resp.setCustomerShippingList(customerShippingList);
+                resp.setStatusCode(200);
+
+            } else {
+                resp.setStatusCode(404);
+                resp.setError("PostOffice not found for the user.");
+            }
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
 }
