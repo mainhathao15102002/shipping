@@ -7,6 +7,7 @@ import com.sb.shippingbackend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -73,6 +74,8 @@ public class InternalShippingService {
                         } else {
                             resp.setMessage("Order " + order.getId() + " has been in another one!");
                             resp.setStatusCode(200);
+                            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+
                             return resp;
                         }
                     }
@@ -110,7 +113,7 @@ public class InternalShippingService {
                     completedPostOffices = completedPostOffices.substring(0, completedPostOffices.length() - 1);
                 }
 
-                if (completedPostOffices != null) {
+                if (completedPostOffices !=null && !completedPostOffices.isEmpty()) {
                     String[] completedPostOfficeArray = completedPostOffices.split("-");
                     if (Arrays.asList(completedPostOfficeArray).contains(postOffice.getId().toString())) {
                         resp.setMessage("PostOffice has already completed this InternalShipping!");
@@ -118,7 +121,7 @@ public class InternalShippingService {
                         return resp;
                     }
                 }
-                internalShipping.setListPostOfficeCompleted((completedPostOffices != null ? completedPostOffices + "-" : "") + postOffice.getId() + "-");
+                internalShipping.setListPostOfficeCompleted((completedPostOffices != null && !completedPostOffices.isEmpty() ? completedPostOffices + "-" : "") + postOffice.getId() + "-");
                 String[] completedPostOfficeArray = internalShipping.getListPostOfficeCompleted().substring(0, internalShipping.getListPostOfficeCompleted().length() - 1).split("-");
                 String[] listPostOfficesArray = internalShipping.getListPostOffice().split("-");
                 if (completedPostOfficeArray.length == listPostOfficesArray.length) {
@@ -135,6 +138,16 @@ public class InternalShippingService {
                         updatedOrders.add(order);
                     }
                 }
+                if(!internalShippingReq.getNewOrderIdList().isEmpty())
+                {
+                    for (String orderId : internalShippingReq.getNewOrderIdList()) {
+                        Order order = orderRepository.findById(orderId)
+                                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+                        order.setInternalShippingDetail(internalShippingDetail);
+                        order.setStatus(OrderStatus.TRANSPORTING);
+                        updatedOrders.add(order);
+                    }
+                }
                 LocalDateTime now = LocalDateTime.now();
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
                 String formattedNow = now.format(formatter);
@@ -144,9 +157,7 @@ public class InternalShippingService {
                 }
                 else {
                     internalShippingDetail.setWarehouseDate(formattedNow);
-
                 }
-
                 orderRepository.saveAll(updatedOrders);
                 internalShippingRepository.save(internalShipping);
                 logService.logAction("CONFIRM_ORDER","INTERNAL_SHIPPING", internalShippingReq.getDetailId(),token);
@@ -178,7 +189,6 @@ public class InternalShippingService {
                     order.setStatus(OrderStatus.CONFIRMED);
                 }
                 orderRepository.saveAll(existingOrders);
-
                 InternalShipping internalShipping = internalShippingDetail.getInternalShipping();
                 internalShipping.setListPostOffice(internalShippingReq.getPostOfficeList());
                 internalShipping.setDepartureDate(internalShippingReq.getDepartureDate());
@@ -216,8 +226,6 @@ public class InternalShippingService {
         String username = jwtUtil.extractUsername(token);
         return employeeRepository.findByUserEmail(username);
     }
-
-
 
     @Transactional(readOnly = true)
     public InternalShippingRes getAllByPostOfficeId(String token) {

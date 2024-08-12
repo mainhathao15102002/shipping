@@ -133,16 +133,13 @@ public class OrderService {
             if (tmp != null) {
                 Optional<Order> order = orderRepository.findById(tmp.getOrderId());
                 LocalDateTime currentDateTime = LocalDateTime.now();
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                String formattedDateTime = currentDateTime.format(formatter);
                 Bill bill = new Bill();
-                bill.setId(tmp.getId());
-                bill.setCreatedDate(LocalDateTime.parse(formattedDateTime));
+
+                bill.setCreatedDate(currentDateTime);
                 bill.setBillStatus(true);
                 Bill billResult = billRepository.save(bill);
                 if (!billResult.getId().isEmpty()) {
                     TotalCostId totalCostId = new TotalCostId(tmp.getOrderId(), billResult.getId());
-
                     TotalCost totalCost = new TotalCost();
                     totalCost.setId(totalCostId);
                     totalCost.setTotalCost(tmp.getTotalCost());
@@ -240,7 +237,7 @@ public class OrderService {
 
             Temp_bill bill = new Temp_bill();
             bill.setTotalCost(createRequest.getTotalCost());
-            bill.setCreatedDate(LocalDate.parse(formattedDateTime));
+            bill.setCreatedDate(currentDateTime);
             bill.setOrderId(order.getId());
             tmpBillRepository.save(bill);
             if (!orderResult.getId().isEmpty()) {
@@ -326,7 +323,7 @@ public class OrderService {
 
                 Temp_bill bill = new Temp_bill();
                 bill.setTotalCost(createRequest.getTotalCost());
-                bill.setCreatedDate(LocalDate.parse(formattedDateTime));
+                bill.setCreatedDate(currentDateTime);
                 bill.setOrderId(order.getId());
                 tempBills.add(bill);
                 createdOrders.add(orderResult);

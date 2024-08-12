@@ -21,6 +21,7 @@ public class InternalShippingReq {
     private Date completedDate;
     private Integer truckId;
     private List<String> orderIdList;
+    private List<String> newOrderIdList;
     private Integer postOfficeSend;
     private String postOfficeList;
 }
