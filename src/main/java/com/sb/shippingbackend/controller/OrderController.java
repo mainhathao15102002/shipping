@@ -94,4 +94,30 @@ public class OrderController {
     public ResponseEntity<?> findOrdersByCustomerId(@PathVariable String customerId) {
         return ResponseEntity.ok(orderService.findOrdersByCustomerId(customerId));
     }
+    @GetMapping("v3/order/payment_infor")
+    public ResponseEntity<?> transaction(@RequestParam String orderId,@RequestHeader("Authorization") String token)
+    {
+        final String jwtToken = Utils.getToken(token);
+        if(jwtToken == null) {
+            return ResponseEntity.status(500).body("token is not valid");
+        }
+        return ResponseEntity.ok(orderService.paymentOnline(orderId,jwtToken));
+    }
+
+    @GetMapping("/v3/order/update-paid/{orderId}")
+    public ResponseEntity<?> updatePaid(@PathVariable String orderId,@RequestHeader("Authorization") String token) {
+        final String jwtToken = Utils.getToken(token);
+        if(jwtToken == null) {
+            return ResponseEntity.status(500).body("token is not valid");
+        }
+        return ResponseEntity.ok(orderService.updatePaid(orderId,jwtToken));
+    }
+    @GetMapping("/v3/order/create-paid/{vnp_TxnRef}/{vnp_Amount}/{vnp_PayDate}/{vnp_ResponseCode}")
+    public ResponseEntity<?> createPayment(@PathVariable String vnp_TxnRef,
+                                        @PathVariable String vnp_Amount,
+                                        @PathVariable String vnp_PayDate,
+                                        @PathVariable String vnp_ResponseCode) {
+
+        return ResponseEntity.ok(orderService.createPayment(vnp_TxnRef,vnp_Amount,vnp_PayDate,vnp_ResponseCode));
+    }
 }

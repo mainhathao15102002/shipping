@@ -48,6 +48,9 @@ public class Order {
     @Column(name = "nhanhangtaibuucuc")
     private Boolean receiveAtPostOffice;
 
+    @Column(name = "dathanhtoan")
+    private Boolean isPaid;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "trangthai")
     private OrderStatus status = OrderStatus.PENDING;;
@@ -65,9 +68,13 @@ public class Order {
     @JsonIgnore
     private PostOffice postOffice;
 
+
+
     @OneToOne(mappedBy = "order")
     @JsonIgnore
     private TotalCost totalCost;
+
+
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"order", "list"})

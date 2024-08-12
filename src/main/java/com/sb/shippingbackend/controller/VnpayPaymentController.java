@@ -98,16 +98,5 @@ public class VnpayPaymentController {
         return ResponseEntity.status(HttpStatus.OK).body(paymentVNPRes);
     }
 
-    @GetMapping("/payment_infor")
-    public ResponseEntity<?> transaction(@RequestParam String vnp_Amount,
-                                         @RequestParam String vnp_BankCode,
-                                         @RequestParam String vnp_OrderInfo,
-                                         @RequestParam String vnp_PayDate,
-                                         @RequestParam String vnp_ResponseCode,
-                                         @RequestParam String vnp_TxnRef
-                                         )
-    {
 
-        return ResponseEntity.ok(orderService.paymentOnline(vnp_PayDate,vnp_TxnRef,vnp_Amount,vnp_ResponseCode));
-    }
 }

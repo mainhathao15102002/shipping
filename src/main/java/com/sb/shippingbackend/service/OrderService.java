@@ -66,6 +66,8 @@ public class OrderService {
     private double COST_HIGHER_5000KG_INTRA_PROVINCIAL = 15000.0;
     @Autowired
     private InternalShippingRepository internalShippingRepository;
+    @Autowired
+    private PaymentRepository paymentRepository;
 
     public static double roundToHalf(double d) {
         return Math.round(d * 2) / 2.0;
@@ -132,41 +134,55 @@ public class OrderService {
         try {
             Temp_bill tmp = tmpBillRepository.findByOrderId(directPaymentReq.getOrderId());
             if (tmp != null) {
-                Optional<Order> order = orderRepository.findById(tmp.getOrderId());
-                LocalDateTime currentDateTime = LocalDateTime.now();
-                Bill bill = new Bill();
-                bill.setCreatedDate(currentDateTime);
-                bill.setBillStatus(true);
-                Bill billResult = billRepository.save(bill);
-                if (!billResult.getId().isEmpty()) {
-                    TotalCostId totalCostId = new TotalCostId(tmp.getOrderId(), billResult.getId());
-                    TotalCost totalCost = new TotalCost();
-                    totalCost.setId(totalCostId);
-                    totalCost.setTotalCost(tmp.getTotalCost());
-                    order.ifPresent(totalCost::setOrder);
-                    totalCost.setBill(bill);
-                    totalCostRepository.save(totalCost);
-                    resp.setBillId(billResult.getId());
-                    DateTimeFormatter formatterRes = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-                    resp.setCreatedDate(billResult.getCreatedDate().format(formatterRes));
-                    resp.setTotalCost(totalCost.getTotalCost());
-                    resp.setBillStatus(billResult.isBillStatus() ? "PAID" : "INACTIVE");
-                    resp.setOrderId(billResult.getId());
-                    resp.setMessage("COMPLETED PAYMENT!");
-                    resp.setStatusCode(200);
+                Optional<Order> orderOpt = orderRepository.findById(tmp.getOrderId());
+                if (orderOpt.isPresent()) {
+                    Order order = orderOpt.get();
+                    LocalDateTime currentDateTime = LocalDateTime.now();
+
+                    Bill bill = new Bill();
+                    bill.setCreatedDate(currentDateTime);
+                    bill.setBillStatus(true);
+                    Bill billResult = billRepository.save(bill);
+
+                    if (!billResult.getId().isEmpty()) {
+                        TotalCostId totalCostId = new TotalCostId(tmp.getOrderId(), billResult.getId());
+                        TotalCost totalCost = new TotalCost();
+                        totalCost.setId(totalCostId);
+                        totalCost.setTotalCost(tmp.getTotalCost());
+                        totalCost.setOrder(order);
+                        totalCost.setBill(bill);
+                        totalCostRepository.save(totalCost);
+
+                        order.setIsPaid(true);
+                        orderRepository.save(order);
+
+                        DateTimeFormatter formatterRes = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+                        resp.setBillId(billResult.getId());
+                        resp.setCreatedDate(billResult.getCreatedDate().format(formatterRes));
+                        resp.setTotalCost(totalCost.getTotalCost());
+                        resp.setBillStatus(billResult.isBillStatus() ? "PAID" : "INACTIVE");
+                        resp.setOrderId(billResult.getId());
+                        resp.setMessage("COMPLETED PAYMENT!");
+                        resp.setStatusCode(200);
+                    }
+                } else {
+                    TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                    resp.setMessage("ORDER NOT FOUND");
+                    resp.setStatusCode(404);
                 }
             } else {
+                // Rollback transaction if temp bill is not found
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                resp.setMessage("NOT FOUND");
+                resp.setMessage("TEMP BILL NOT FOUND");
                 resp.setStatusCode(404);
             }
-
         } catch (Exception e) {
             resp.setStatusCode(500);
             resp.setError(e.getMessage());
         }
         return resp;
     }
+
 
     private Customer getCustomer(String token) {
         String username = jwtUtil.extractUsername(token);
@@ -192,7 +208,7 @@ public class OrderService {
             order.setReceiveAtHome(createRequest.isReceiveAtHome());
             order.setReceiveAtPostOffice(createRequest.isReceiveAtPostOffice());
             LocalDate today = LocalDate.now();
-            order.setEstimatedDeliveryDate(today.plusDays((long)createRequest.getEstimatedDeliveryDate()));
+            order.setEstimatedDeliveryDate(today.plusDays((long) createRequest.getEstimatedDeliveryDate()));
             order.setCustomer(customer);
 
             PostOffice postOffice = createRequest.getPostOfficeId() != null ? postOfficeRepository.findById(createRequest.getPostOfficeId()).orElseThrow(null) : null;
@@ -338,6 +354,49 @@ public class OrderService {
         }
         return resp;
     }
+
+    @Transactional
+    public ReqRes createPayment(String vnp_TxnRef, String vnp_Amount, String vnp_PayDate ,String vnp_ResponseCode) {
+        ReqRes resp = new ReqRes();
+        try {
+            Payment payment = new Payment();
+            payment.setVnp_Amount(vnp_Amount);
+            payment.setVnp_PayDate(vnp_PayDate);
+            payment.setVnp_ResponseCode(vnp_ResponseCode);
+            payment.setVnp_TxnRef(vnp_TxnRef);
+            paymentRepository.save(payment);
+            resp.setStatusCode(200);
+            resp.setError("SUCCESSFULLY!");
+
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
+
+    @Transactional
+    public ReqRes updatePaid(String orderId, String token) {
+        ReqRes resp = new ReqRes();
+        try {
+            Order order = orderRepository.findById(orderId).orElseThrow(null);
+            if (order != null) {
+                order.setIsPaid(true);
+                Order orderResult = orderRepository.save(order);
+                resp.setStatusCode(200);
+                resp.setOrder(orderResult);
+            } else {
+                resp.setMessage("NOT FOUND!");
+                resp.setStatusCode(404);
+            }
+
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
+
     @Transactional
     public ReqRes updateStatusOrder(UpdateOrderReq updateRequest, String token) {
         ReqRes resp = new ReqRes();
@@ -347,9 +406,9 @@ public class OrderService {
                 Order order = orderRepository.findById(updatedId).orElseThrow(null);
                 if (order != null) {
                     OrderStatus orderStatus = OrderStatus.valueOf(updateRequest.getStatus());
-                    if(orderStatus == OrderStatus.CONFIRMED) {
+                    if (orderStatus == OrderStatus.CONFIRMED) {
                         LocalDate today = LocalDate.now();
-                        long daysBetween = ChronoUnit.DAYS.between(order.getCreatedDate(),order.getEstimatedDeliveryDate());
+                        long daysBetween = ChronoUnit.DAYS.between(order.getCreatedDate(), order.getEstimatedDeliveryDate());
                         order.setEstimatedDeliveryDate(today.plusDays(daysBetween));
                     }
                     order.setStatus(orderStatus);
@@ -421,14 +480,14 @@ public class OrderService {
     public ReqRes updateCostVariables(UpdateCostReq updateCostReq) {
         ReqRes resp = new ReqRes();
         try {
-            this.BASE_COST_KM = updateCostReq.getBaseCostKm()==0.0?this.BASE_COST_KM:updateCostReq.getBaseCostKm();
-            this.PERCENT_0KM_100KM = updateCostReq.getPercent0km100km()==0.0?this.PERCENT_0KM_100KM:updateCostReq.getPercent0km100km();
-            this.PERCENT_100KM_500KM = updateCostReq.getPercent100km500km()==0.0?this.PERCENT_100KM_500KM:updateCostReq.getPercent100km500km();
-            this.PERCENT_500KM_1000KM = updateCostReq.getPercent500km1000km()==0.0?this.PERCENT_500KM_1000KM:updateCostReq.getPercent500km1000km();
-            this.PERCENT_1000KM_HIGHER = updateCostReq.getPercent1000kmHigher()==0.0?this.PERCENT_1000KM_HIGHER:updateCostReq.getPercent1000kmHigher();
-            this.BASE_COST_PER_KG = updateCostReq.getBaseCostPerKg()==0.0?this.BASE_COST_PER_KG:updateCostReq.getBaseCostPerKg();
-            this.COST_PER_KG_OVER_4KG = updateCostReq.getCostPerKgOver4kg()==0.0?this.COST_PER_KG_OVER_4KG:updateCostReq.getCostPerKgOver4kg();
-            this.COST_HIGHER_5000KG_INTRA_PROVINCIAL = updateCostReq.getCostHigher5000kgIntraProvincial()==0.0?this.COST_HIGHER_5000KG_INTRA_PROVINCIAL:updateCostReq.getCostHigher5000kgIntraProvincial();
+            this.BASE_COST_KM = updateCostReq.getBaseCostKm() == 0.0 ? this.BASE_COST_KM : updateCostReq.getBaseCostKm();
+            this.PERCENT_0KM_100KM = updateCostReq.getPercent0km100km() == 0.0 ? this.PERCENT_0KM_100KM : updateCostReq.getPercent0km100km();
+            this.PERCENT_100KM_500KM = updateCostReq.getPercent100km500km() == 0.0 ? this.PERCENT_100KM_500KM : updateCostReq.getPercent100km500km();
+            this.PERCENT_500KM_1000KM = updateCostReq.getPercent500km1000km() == 0.0 ? this.PERCENT_500KM_1000KM : updateCostReq.getPercent500km1000km();
+            this.PERCENT_1000KM_HIGHER = updateCostReq.getPercent1000kmHigher() == 0.0 ? this.PERCENT_1000KM_HIGHER : updateCostReq.getPercent1000kmHigher();
+            this.BASE_COST_PER_KG = updateCostReq.getBaseCostPerKg() == 0.0 ? this.BASE_COST_PER_KG : updateCostReq.getBaseCostPerKg();
+            this.COST_PER_KG_OVER_4KG = updateCostReq.getCostPerKgOver4kg() == 0.0 ? this.COST_PER_KG_OVER_4KG : updateCostReq.getCostPerKgOver4kg();
+            this.COST_HIGHER_5000KG_INTRA_PROVINCIAL = updateCostReq.getCostHigher5000kgIntraProvincial() == 0.0 ? this.COST_HIGHER_5000KG_INTRA_PROVINCIAL : updateCostReq.getCostHigher5000kgIntraProvincial();
             resp.setMessage("Cost variables updated successfully!");
             resp.setStatusCode(200);
         } catch (Exception e) {
@@ -437,6 +496,7 @@ public class OrderService {
         }
         return resp;
     }
+
     @Transactional
     public ReqRes getOrdersForPostOffices(String internalShippingId, String token) {
         ReqRes resp = new ReqRes();
@@ -478,26 +538,26 @@ public class OrderService {
         }
         return resp;
     }
+
     @Transactional
-    public DirectPaymentRes paymentOnline(String vnp_PayDate,String vnp_TxnRef, String vnp_Amount, String vnp_ResponseCode)
-    {
+    public DirectPaymentRes paymentOnline(String orderId, String token) {
         DirectPaymentRes resp = new DirectPaymentRes();
         try {
-            if(vnp_ResponseCode.equals("00")) {
-
+            Payment payment = paymentRepository.findById(orderId).orElseThrow(null);
+            if (payment.getVnp_ResponseCode().equals("00")) {
                 DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-                LocalDateTime dateTime = LocalDateTime.parse(vnp_PayDate, formatter1);
+                LocalDateTime dateTime = LocalDateTime.parse(payment.getVnp_PayDate(), formatter1);
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                 Bill bill = new Bill();
                 bill.setCreatedDate(dateTime);
                 bill.setBillStatus(true);
                 Bill billResult = billRepository.save(bill);
                 if (!billResult.getId().isEmpty()) {
-                    TotalCostId totalCostId = new TotalCostId(vnp_TxnRef, billResult.getId());
+                    TotalCostId totalCostId = new TotalCostId(payment.getVnp_TxnRef(), billResult.getId());
                     TotalCost totalCost = new TotalCost();
                     totalCost.setId(totalCostId);
-                    totalCost.setTotalCost(Double.valueOf(vnp_Amount)/100);
-                    Optional<Order> order = orderRepository.findById(vnp_TxnRef);
+                    totalCost.setTotalCost(Double.parseDouble(payment.getVnp_Amount()) / 100);
+                    Optional<Order> order = orderRepository.findById(payment.getVnp_TxnRef());
                     order.ifPresent(totalCost::setOrder);
                     totalCost.setBill(bill);
                     totalCostRepository.save(totalCost);
@@ -510,17 +570,15 @@ public class OrderService {
                     resp.setStatusCode(200);
 
                 }
-            }
-            else {
+            } else {
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                 resp.setMessage("FAILED PAYMENT!");
                 resp.setStatusCode(200);
             }
-       }catch (Exception e)
-       {
-           resp.setStatusCode(500);
-           resp.setError(e.getMessage());
-       }
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
         return resp;
     }
 }
