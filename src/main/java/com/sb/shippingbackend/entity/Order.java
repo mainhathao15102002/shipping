@@ -14,7 +14,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode
 @Table(name = "vandon")
-@ToString(exclude = {"merchandiseList","bill", "customer","internalShippingDetail"})
+@ToString(exclude = {"bill", "customer","internalShippingDetail"})
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

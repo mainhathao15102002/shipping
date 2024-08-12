@@ -189,7 +189,7 @@ public class OrderService {
             order.setReceiverPhone(createRequest.getReceiverPhone());
             order.setTotalWeight(createRequest.getTotalWeight());
             order.setReceiveAtHome(createRequest.isReceiveAtHome());
-            order.setReceiveAtHome(createRequest.isReceiveAtPostOffice());
+            order.setReceiveAtPostOffice(createRequest.isReceiveAtPostOffice());
             LocalDate today = LocalDate.now();
             order.setEstimatedDeliveryDate(today.plusDays((long)createRequest.getEstimatedDeliveryDate()));
             order.setCustomer(customer);
@@ -212,7 +212,7 @@ public class OrderService {
                 merchandise.setWeight(item.getWeight());
                 merchandise.setImageUrl(item.getImageUrl());
                 merchandise.setQuantity(item.getQuantity());
-                merchandise.setOrder(order);
+                merchandise.setOrder(orderResult);
                 List<ListSpecicalPropOfMerchandise> list = new ArrayList<>();
                 if (item.getList() != null && !item.getList().isEmpty()) {
                     for (int i = 0; i < item.getList().size(); i++) {
@@ -242,7 +242,6 @@ public class OrderService {
             tmpBillRepository.save(bill);
             if (!orderResult.getId().isEmpty()) {
                 resp.setOrder(orderResult);
-                resp.setMerchandiseList(orderResult.getMerchandiseList());
                 resp.setMessage("Successful!");
                 resp.setStatusCode(200);
             } else {
@@ -298,7 +297,7 @@ public class OrderService {
                     merchandise.setWeight(item.getWeight());
                     merchandise.setImageUrl(item.getImageUrl());
                     merchandise.setQuantity(item.getQuantity());
-                    merchandise.setOrder(order);
+                    merchandise.setOrder(orderResult);
                     List<ListSpecicalPropOfMerchandise> list = new ArrayList<>();
                     if (item.getList() != null && !item.getList().isEmpty()) {
                         for (int i = 0; i < item.getList().size(); i++) {
