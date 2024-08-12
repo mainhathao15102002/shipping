@@ -43,10 +43,10 @@ public class Order {
     private String deliverMethod;
 
     @Column(name = "nhanhangtainha")
-    private Boolean receiveAtHome = true;
+    private Boolean receiveAtHome;
 
     @Column(name = "nhanhangtaibuucuc")
-    private Boolean receiveAtPostOffice = false;
+    private Boolean receiveAtPostOffice;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trangthai")
