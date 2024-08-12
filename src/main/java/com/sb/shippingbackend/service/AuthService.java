@@ -223,7 +223,7 @@ public class AuthService {
             User user = new User();
             user.setEmail(registrationRequest.getEmail());
             user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
-            user.setRole("EMPLOYEE");
+            user.setRole(registrationRequest.getRole()==null?"EMPLOYEE":registrationRequest.getRole());
             User savedUser = userRepository.save(user);
             Employee employee = new Employee();
             employee.setName(registrationRequest.getName());
