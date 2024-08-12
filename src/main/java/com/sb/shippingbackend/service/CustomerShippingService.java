@@ -64,6 +64,7 @@ public class CustomerShippingService {
                     if (order != null) {
                         if (order.getCustomerShippingDetail() == null) {
                             order.setCustomerShippingDetail(customerShippingDetailResult);
+                            order.setStatus(OrderStatus.WAITING);
                         } else {
                             resp.setMessage("Order " + order.getId() + " has been in another one!");
                             resp.setStatusCode(200);
@@ -102,7 +103,6 @@ public class CustomerShippingService {
                 for (Order order : existingOrders) {
                     order.setCustomerShippingDetail(null);
                     order.setStatus(OrderStatus.STOCKED);
-
                 }
                 orderRepository.saveAll(existingOrders);
 
@@ -191,7 +191,6 @@ public class CustomerShippingService {
                     .orElseThrow(() -> new IllegalArgumentException("Customer Shipping Id not found: " + customerShippingId));
             customerShipping.setStatus(CustomerShippingStatus.CONFIRMED);
             Order order = orderRepository.findOneByCustomerShippingDetail(customerShippingId);
-            order.setStatus(OrderStatus.WAITING);
             customerShippingRepository.save(customerShipping);
             orderRepository.save(order);
             logService.logAction("CONFIRM", "CUSTOMER_SHIPPING", customerShippingId, token);
