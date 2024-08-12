@@ -101,6 +101,8 @@ public class CustomerShippingService {
                 List<Order> existingOrders = orderRepository.findByCustomerShippingDetail(customerShippingReq.getId());
                 for (Order order : existingOrders) {
                     order.setCustomerShippingDetail(null);
+                    order.setStatus(OrderStatus.STOCKED);
+
                 }
                 orderRepository.saveAll(existingOrders);
 
@@ -117,6 +119,7 @@ public class CustomerShippingService {
                 Order order = orderRepository.findById(orderId)
                         .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
                 order.setCustomerShippingDetail(customerShippingDetail);
+                order.setStatus(OrderStatus.WAITING);
                 orderRepository.save(order);
 
                 customerShippingDetailRepository.save(customerShippingDetail);
