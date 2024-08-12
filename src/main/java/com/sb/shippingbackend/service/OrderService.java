@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -134,7 +135,6 @@ public class OrderService {
                 Optional<Order> order = orderRepository.findById(tmp.getOrderId());
                 LocalDateTime currentDateTime = LocalDateTime.now();
                 Bill bill = new Bill();
-
                 bill.setCreatedDate(currentDateTime);
                 bill.setBillStatus(true);
                 Bill billResult = billRepository.save(bill);
@@ -156,6 +156,7 @@ public class OrderService {
                     resp.setStatusCode(200);
                 }
             } else {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                 resp.setMessage("NOT FOUND");
                 resp.setStatusCode(404);
             }
@@ -511,6 +512,7 @@ public class OrderService {
                 }
             }
             else {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                 resp.setMessage("FAILED PAYMENT!");
                 resp.setStatusCode(200);
             }

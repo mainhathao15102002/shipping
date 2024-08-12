@@ -75,7 +75,6 @@ public class InternalShippingService {
                             resp.setMessage("Order " + order.getId() + " has been in another one!");
                             resp.setStatusCode(200);
                             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-
                             return resp;
                         }
                     }
