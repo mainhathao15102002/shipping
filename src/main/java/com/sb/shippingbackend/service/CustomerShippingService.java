@@ -202,20 +202,26 @@ public class CustomerShippingService {
     }
 
     @Transactional
-    public ReqRes completeOrder(String id) {
+    public ReqRes completeOrder(String id, String token) {
         ReqRes resp = new ReqRes();
         try {
+            Employee employee = getEmployee(token);
             CustomerShipping customerShipping = customerShippingRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Customer Shipping Id not found: " + id));
             CustomerShippingDetail customerShippingDetail = customerShippingDetailRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Customer Shipping Detail Id not found: " + id));
             customerShipping.setStatus(CustomerShippingStatus.COMPLETED);
+            customerShipping.setLicensePlate(employee.getUser().getEmail());
             LocalDate now = LocalDate.now();
             customerShippingDetail.setCompletedDate(now);
 
             List<Order> orders = orderRepository.findByCustomerShippingDetail(id);
             for (Order order : orders) {
                 order.setStatus(OrderStatus.COMPLETED);
+                if(order.getReceiveAtPostOffice())
+                {
+                    customerShipping.setLicensePlate(employee.getUser().getEmail());
+                }
             }
             customerShippingRepository.save(customerShipping);
             customerShippingDetailRepository.save(customerShippingDetail);
@@ -229,6 +235,8 @@ public class CustomerShippingService {
         return resp;
 
     }
+
+
 
     @Transactional
     public CustomerShippingRes startShipping(String customerShippingId, String token) {
@@ -276,4 +284,6 @@ public class CustomerShippingService {
         }
         return resp;
     }
+
+
 }

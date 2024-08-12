@@ -66,8 +66,12 @@ public class CustomerShippingController {
         return ResponseEntity.ok(customerShippingService.confirmedCustomerShipping(customerShippingId, jwtToken));
     }
     @PutMapping("/completed/{id}")
-    public ResponseEntity<?> confirmed(@PathVariable String id) {
-        return ResponseEntity.ok(customerShippingService.completeOrder(id));
+    public ResponseEntity<?> completed(@PathVariable String id,@RequestHeader("Authorization") String token) {
+        final String jwtToken = Utils.getToken(token);
+        if(jwtToken == null) {
+            return ResponseEntity.status(500).body("token is not valid");
+        }
+        return ResponseEntity.ok(customerShippingService.completeOrder(id,jwtToken));
     }
     @GetMapping("/get-by-username")
     public ResponseEntity<?> getCustomerShippingByLicensePlate(
