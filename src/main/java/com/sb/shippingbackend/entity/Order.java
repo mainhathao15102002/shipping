@@ -49,7 +49,7 @@ public class Order {
     private Boolean receiveAtPostOffice;
 
     @Column(name = "dathanhtoan")
-    private Boolean isPaid;
+    private Boolean isPaid = false;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trangthai")
