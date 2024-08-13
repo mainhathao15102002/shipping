@@ -246,7 +246,7 @@ public class AuthService {
             employee.setPostOffice(postOffice);
             employee.setUser(savedUser);
             employeeRepository.save(employee);
-            emailService.sendPasswordEmployee(username, password);
+            emailService.sendPasswordEmployee(registrationRequest.getEmail(), password);
             resp.setMessage("Admin account created successfully!");
             resp.setStatusCode(200);
         } catch (Exception e) {
