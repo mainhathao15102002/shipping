@@ -236,7 +236,8 @@ public class AuthService {
             PostOffice postOffice = postOfficeRepository.findByUsername(existingUser.getUsername());
             User user = new User();
             user.setEmail(registrationRequest.getEmail());
-            user.setPassword(passwordEncoder.encode(generateRandomString()));
+            String password = generateRandomString();
+            user.setPassword(passwordEncoder.encode(password));
             user.setRole(registrationRequest.getRole()==null?"EMPLOYEE":registrationRequest.getRole());
             User savedUser = userRepository.save(user);
             Employee employee = new Employee();
@@ -245,7 +246,7 @@ public class AuthService {
             employee.setPostOffice(postOffice);
             employee.setUser(savedUser);
             employeeRepository.save(employee);
-            emailService.sendPasswordEmployee(username,registrationRequest.getPassword()    );
+            emailService.sendPasswordEmployee(username, password);
             resp.setMessage("Admin account created successfully!");
             resp.setStatusCode(200);
         } catch (Exception e) {
