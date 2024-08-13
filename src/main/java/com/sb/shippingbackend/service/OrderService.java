@@ -540,6 +540,25 @@ public class OrderService {
     }
 
     @Transactional
+    public ReqRes cancelOrderWhenErrorPayOnline(String orderId) {
+        ReqRes resp = new ReqRes();
+        try {
+            Order order = orderRepository.findById(orderId).orElse(null);
+            if (order != null) {
+                order.setStatus(OrderStatus.CANCELLED);
+                resp.setStatusCode(200);
+            } else {
+                resp.setMessage("Order not found!");
+                resp.setStatusCode(404);
+            }
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
+
+    @Transactional
     public DirectPaymentRes paymentOnline(String orderId, String token) {
         DirectPaymentRes resp = new DirectPaymentRes();
         try {
@@ -571,6 +590,7 @@ public class OrderService {
 
                 }
             } else {
+
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                 resp.setMessage("FAILED PAYMENT!");
                 resp.setStatusCode(200);

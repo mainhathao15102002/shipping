@@ -112,6 +112,11 @@ public class OrderController {
         }
         return ResponseEntity.ok(orderService.updatePaid(orderId,jwtToken));
     }
+    @GetMapping("/v3/order/cancel/{orderId}")
+    public ResponseEntity<?> cancel(@PathVariable String orderId) {
+
+        return ResponseEntity.ok(orderService.cancelOrderWhenErrorPayOnline(orderId));
+    }
     @GetMapping("/v3/order/create-paid/{vnp_TxnRef}/{vnp_Amount}/{vnp_PayDate}/{vnp_ResponseCode}")
     public ResponseEntity<?> createPayment(@PathVariable String vnp_TxnRef,
                                         @PathVariable String vnp_Amount,
