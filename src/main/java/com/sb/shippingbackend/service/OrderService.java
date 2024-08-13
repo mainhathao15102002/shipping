@@ -546,6 +546,7 @@ public class OrderService {
             Order order = orderRepository.findById(orderId).orElse(null);
             if (order != null) {
                 order.setStatus(OrderStatus.CANCELLED);
+                orderRepository.save(order);
                 resp.setStatusCode(200);
             } else {
                 resp.setMessage("Order not found!");
