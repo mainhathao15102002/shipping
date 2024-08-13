@@ -22,8 +22,8 @@ public class EmailService {
     public void sendPasswordEmployee(String to, String password) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
-        message.setSubject("Verification Code");
-        message.setText("Your verification code is: " + password);
+        message.setSubject("Password");
+        message.setText("Your password is: " + password);
         emailSender.send(message);
     }
 

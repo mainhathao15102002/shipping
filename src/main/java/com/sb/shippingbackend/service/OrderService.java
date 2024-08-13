@@ -153,7 +153,7 @@ public class OrderService {
                         totalCost.setOrder(order);
                         totalCost.setBill(bill);
                         totalCostRepository.save(totalCost);
-
+                        order.setStatus(OrderStatus.CONFIRMED);
                         order.setIsPaid(true);
                         orderRepository.save(order);
 
