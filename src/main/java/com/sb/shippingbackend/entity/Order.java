@@ -14,7 +14,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode
 @Table(name = "vandon")
-@ToString(exclude = {"bill", "customer","internalShippingDetail"})
+@ToString(exclude = {"bill", "customer","internalShippingDetail","merchandiseList"})
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -73,8 +73,6 @@ public class Order {
     @OneToOne(mappedBy = "order")
     @JsonIgnore
     private TotalCost totalCost;
-
-
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties({"order", "list"})
