@@ -231,7 +231,38 @@ public class AuthService {
             employee.setPostOffice(postOffice);
             employee.setUser(savedUser);
             employeeRepository.save(employee);
-            emailService.sendPasswordEmployee(username,registrationRequest.getPassword());
+            emailService.sendPasswordEmployee(username,registrationRequest.getPassword()    );
+            resp.setMessage("Admin account created successfully!");
+            resp.setStatusCode(200);
+        } catch (Exception e) {
+            resp.setStatusCode(500);
+            resp.setError(e.getMessage());
+        }
+        return resp;
+    }
+
+    @Transactional
+    public ReqRes signUpAccount(SignUpAuthReq registrationRequest)
+    {
+        ReqRes resp = new ReqRes();
+        try {
+            if (userRepository.existsByEmail(registrationRequest.getEmail())) {
+                resp.setMessage("Email already exists!");
+                resp.setStatusCode(400);
+                return resp;
+            }
+            User user = new User();
+            user.setEmail(registrationRequest.getEmail());
+            user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
+            user.setRole("ADMIN");
+            User savedUser = userRepository.save(user);
+            Employee employee = new Employee();
+            employee.setName(registrationRequest.getName());
+            employee.setPhoneNumber(registrationRequest.getPhoneNumber());
+            PostOffice postOffice = postOfficeRepository.findById(Integer.valueOf(registrationRequest.getIdCode())).orElseThrow(null);
+            employee.setPostOffice(postOffice);
+            employee.setUser(savedUser);
+            employeeRepository.save(employee);
             resp.setMessage("Admin account created successfully!");
             resp.setStatusCode(200);
         } catch (Exception e) {

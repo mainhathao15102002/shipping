@@ -4,8 +4,11 @@ import com.sb.shippingbackend.dto.response.BillResponse;
 import com.sb.shippingbackend.dto.response.ReqRes;
 import com.sb.shippingbackend.dto.request.UpdateBillStatusReq;
 import com.sb.shippingbackend.entity.Bill;
+import com.sb.shippingbackend.entity.Employee;
+import com.sb.shippingbackend.entity.InternalShipping;
 import com.sb.shippingbackend.entity.TotalCost;
 import com.sb.shippingbackend.repository.BillRepository;
+import com.sb.shippingbackend.repository.EmployeeRepository;
 import com.sb.shippingbackend.repository.OrderRepository;
 import com.sb.shippingbackend.repository.TotalCostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +27,11 @@ public class BillService {
     private TotalCostRepository totalCostRepository;
 
     @Autowired
+    private JWTUtils jwtUtil;
+    @Autowired
     private OrderRepository orderRepository;
+    @Autowired
+    private EmployeeRepository employeeRepository;
 
     public BillResponse findBillById(String billId) {
         BillResponse resp = new BillResponse();
@@ -39,9 +46,15 @@ public class BillService {
         }
         return resp;
     }
+    private Employee getEmployee(String token) {
+        String username = jwtUtil.extractUsername(token);
+        return employeeRepository.findByUserEmail(username);
+    }
     @Transactional
-    public List<BillResponse> getAllBills() {
-        List<Bill> bills = billRepository.findAll();
+    public List<BillResponse> getAllBills(String token) {
+        Employee employee = getEmployee(token);
+        List<Bill> bills = billRepository.findAll(employee.getPostOffice().getId());
+
         return bills.stream()
                 .sorted((b1, b2) -> b2.getCreatedDate().compareTo(b1.getCreatedDate()))
                 .map(bill -> {

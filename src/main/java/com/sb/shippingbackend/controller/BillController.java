@@ -5,6 +5,7 @@ import com.sb.shippingbackend.dto.response.BillResponse;
 import com.sb.shippingbackend.dto.response.ReqRes;
 import com.sb.shippingbackend.dto.request.UpdateBillStatusReq;
 import com.sb.shippingbackend.service.BillService;
+import com.sb.shippingbackend.service.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,8 +35,12 @@ public class BillController {
     }
 
     @GetMapping("/v2/getAllBill")
-    public ResponseEntity<?> getAllBills() {
-        return ResponseEntity.ok(billService.getAllBills());
+    public ResponseEntity<?> getAllBills(@RequestHeader("Authorization") String token) {
+        final String jwtToken = Utils.getToken(token);
+        if(jwtToken == null) {
+            return ResponseEntity.status(500).body("token is not valid");
+        }
+        return ResponseEntity.ok(billService.getAllBills(jwtToken));
     }
 
 }

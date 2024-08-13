@@ -135,6 +135,7 @@ public class OrderService {
             Temp_bill tmp = tmpBillRepository.findByOrderId(directPaymentReq.getOrderId());
             if (tmp != null) {
                 Optional<Order> orderOpt = orderRepository.findById(tmp.getOrderId());
+
                 if (orderOpt.isPresent()) {
                     Order order = orderOpt.get();
                     LocalDateTime currentDateTime = LocalDateTime.now();
