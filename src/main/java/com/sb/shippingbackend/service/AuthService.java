@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -207,6 +208,19 @@ public class AuthService {
         return resp;
     }
 
+
+
+    public String generateRandomString() {
+        final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        final int LENGTH = 6;
+        final SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder(LENGTH);
+        for (int i = 0; i < LENGTH; i++) {
+            int index = random.nextInt(CHARACTERS.length());
+            sb.append(CHARACTERS.charAt(index));
+        }
+        return sb.toString();
+    }
     @Transactional
     public ReqRes signUpAdminAccount(SignUpAuthReq registrationRequest, String token)
     {
@@ -222,7 +236,7 @@ public class AuthService {
             PostOffice postOffice = postOfficeRepository.findByUsername(existingUser.getUsername());
             User user = new User();
             user.setEmail(registrationRequest.getEmail());
-            user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
+            user.setPassword(passwordEncoder.encode(generateRandomString()));
             user.setRole(registrationRequest.getRole()==null?"EMPLOYEE":registrationRequest.getRole());
             User savedUser = userRepository.save(user);
             Employee employee = new Employee();
